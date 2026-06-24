@@ -9,9 +9,18 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "qa:beta": "python scripts/validate_beta.py"
   },
   "dependencies": {
-    "astro": "^6.4.4"
+    "@astrojs/svelte": "^8.1.2",
+    "@sentry/astro": "^10.60.0",
+    "@spotlightjs/astro": "^3.2.6",
+    "@tailwindcss/vite": "^4.3.0",
+    "astro": "^6.4.4",
+    "lucide-svelte": "^1.0.1",
+    "svelte": "^5.56.3",
+    "tailwindcss": "^4.3.0",
+    "typescript": "^6.0.3"
   }
 }

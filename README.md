@@ -44,3 +44,22 @@ All commands are run from the root of the project, from a terminal:
 ## 👀 Want to learn more?
 
 Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+
+## FC26 Data Pipeline
+
+The importer auto-detects the local FC26 DataHub folder. To use a different dataset location, pass `--input` or set `FC26_DATASET_DIR`.
+
+```sh
+python scripts/import_fc26.py
+python scripts/validate_fc26.py
+python scripts/export_fc26.py
+```
+
+Generated files:
+
+- `data/processed/fc26_players_imported.json`
+- `data/processed/fc26_import_report.json`
+- `data/processed/fc26_validation_report.json`
+- `src/data/fc26_players.json`
+
+Future CSV or JSON dataset updates can be imported with the same commands. Use `python scripts/import_fc26.py --input path/to/dataset` when auto-detection is not appropriate.

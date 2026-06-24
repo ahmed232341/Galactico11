@@ -1,0 +1,14 @@
+{
+  "competition_id": 43,
+  "season_id": 55,
+  "country_name": "International",
+  "competition_name": "FIFA World Cup",
+  "competition_gender": "male",
+  "competition_youth": false,
+  "competition_international": true,
+  "season_name": "1990",
+  "match_updated": "2023-06-28T10:58:20.137929",
+  "match_updated_360": "2021-06-12T16:17:31.694",
+  "match_available_360": NaN,
+  "match_available": "2023-06-28T10:58:20.137929"
+}

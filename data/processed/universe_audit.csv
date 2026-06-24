@@ -1,0 +1,121 @@
+league,club,era,player_count,needs_player_pack
+FIFA World Cup,Australia,2010s,15,True
+Major League Soccer,Charlotte,2020s,15,True
+FIFA World Cup,Egypt,2010s,16,True
+FIFA World Cup,Iran,2010s,16,True
+FIFA World Cup,Nigeria,2010s,16,True
+Major League Soccer,Cincinnati,2020s,16,True
+Major League Soccer,LAFC,2020s,16,True
+Major League Soccer,Nashville SC,2020s,16,True
+Major League Soccer,New York Red Bulls,2020s,16,True
+Major League Soccer,Toronto FC,2020s,16,True
+African Cup of Nations,Tanzania,2020s,17,True
+FIFA World Cup,Peru,2010s,17,True
+FIFA World Cup,Spain,2010s,17,True
+FIFA World Cup,Switzerland,2010s,17,True
+African Cup of Nations,Zambia,2020s,18,True
+Copa America,Ecuador,2020s,18,True
+FIFA World Cup,Brazil,2010s,18,True
+FIFA World Cup,Ecuador,2020s,18,True
+FIFA World Cup,Iceland,2010s,18,True
+FIFA World Cup,Japan,2010s,18,True
+FIFA World Cup,Portugal,2010s,18,True
+FIFA World Cup,Senegal,2010s,18,True
+FIFA World Cup,Serbia,2010s,18,True
+FIFA World Cup,Wales,2020s,18,True
+NWSL,Houston Dash,2010s,18,True
+African Cup of Nations,Equatorial Guinea,2020s,19,True
+African Cup of Nations,Tunisia,2020s,19,True
+FIFA World Cup,Canada,2020s,19,True
+FIFA World Cup,Mexico,2010s,19,True
+FIFA World Cup,Morocco,2010s,19,True
+FIFA World Cup,Russia,2010s,19,True
+FIFA World Cup,South Korea,2010s,19,True
+FIFA World Cup,Sweden,2010s,19,True
+FIFA World Cup,Uruguay,2010s,19,True
+FIFA World Cup,Uruguay,2020s,19,True
+African Cup of Nations,Algeria,2020s,20,True
+African Cup of Nations,Cameroon,2020s,20,True
+African Cup of Nations,Ghana,2020s,20,True
+African Cup of Nations,Namibia,2020s,20,True
+Copa America,Brazil,2020s,20,True
+Copa America,Chile,2020s,20,True
+Copa America,Costa Rica,2020s,20,True
+Copa America,Jamaica,2020s,20,True
+Copa America,Mexico,2020s,20,True
+Copa America,Paraguay,2020s,20,True
+FIFA World Cup,Argentina,2010s,20,True
+FIFA World Cup,Australia,2020s,20,True
+FIFA World Cup,Belgium,2020s,20,True
+FIFA World Cup,Colombia,2010s,20,True
+FIFA World Cup,Costa Rica,2010s,20,True
+FIFA World Cup,Croatia,2020s,20,True
+FIFA World Cup,Denmark,2010s,20,True
+FIFA World Cup,Denmark,2020s,20,True
+FIFA World Cup,Germany,2010s,20,True
+FIFA World Cup,Germany,2020s,20,True
+FIFA World Cup,Ghana,2020s,20,True
+FIFA World Cup,Panama,2010s,20,True
+FIFA World Cup,Qatar,2020s,20,True
+FIFA World Cup,Saudi Arabia,2010s,20,True
+FIFA World Cup,Senegal,2020s,20,True
+FIFA World Cup,United States,2020s,20,True
+NWSL,Orlando Pride,2010s,20,True
+African Cup of Nations,Angola,2020s,21,True
+African Cup of Nations,Cape Verde Islands,2020s,21,True
+African Cup of Nations,Mozambique,2020s,21,True
+African Cup of Nations,South Africa,2020s,21,True
+Copa America,Panama,2020s,21,True
+Copa America,United States,2020s,21,True
+Copa America,Uruguay,2020s,21,True
+FIFA World Cup,Belgium,2010s,21,True
+FIFA World Cup,Croatia,2010s,21,True
+FIFA World Cup,England,2010s,21,True
+FIFA World Cup,England,2020s,21,True
+FIFA World Cup,Iran,2020s,21,True
+FIFA World Cup,Mexico,2020s,21,True
+FIFA World Cup,Netherlands,2020s,21,True
+FIFA World Cup,Poland,2010s,21,True
+FIFA World Cup,Poland,2020s,21,True
+FIFA World Cup,South Korea,2020s,21,True
+FIFA World Cup,Spain,2020s,21,True
+FIFA World Cup,Tunisia,2020s,21,True
+NWSL,NJ/NY Gotham FC,2010s,21,True
+NWSL,OL Reign,2010s,21,True
+NWSL,Washington Spirit,2010s,21,True
+African Cup of Nations,Egypt,2020s,22,False
+African Cup of Nations,Morocco,2020s,22,False
+African Cup of Nations,Nigeria,2020s,22,False
+African Cup of Nations,Senegal,2020s,22,False
+Copa America,Bolivia,2020s,22,False
+Copa America,Canada,2020s,22,False
+Copa America,Venezuela,2020s,22,False
+FIFA World Cup,Cameroon,2020s,22,False
+FIFA World Cup,Costa Rica,2020s,22,False
+FIFA World Cup,Japan,2020s,22,False
+NWSL,Chicago Red Stars,2010s,22,False
+NWSL,Portland Thorns,2010s,22,False
+NWSL,Utah Royals,2010s,22,False
+African Cup of Nations,Burkina Faso,2020s,23,False
+African Cup of Nations,Congo DR,2020s,23,False
+African Cup of Nations,Gambia,2020s,23,False
+African Cup of Nations,Guinea,2020s,23,False
+African Cup of Nations,Mauritania,2020s,23,False
+FIFA World Cup,France,2010s,23,False
+FIFA World Cup,Saudi Arabia,2020s,23,False
+FIFA World Cup,Serbia,2020s,23,False
+FIFA World Cup,Tunisia,2010s,23,False
+Major League Soccer,Inter Miami,2020s,23,False
+African Cup of Nations,Côte d'Ivoire,2020s,24,False
+African Cup of Nations,Guinea-Bissau,2020s,24,False
+African Cup of Nations,Mali,2020s,24,False
+Copa America,Argentina,2020s,24,False
+Copa America,Colombia,2020s,24,False
+Copa America,Peru,2020s,24,False
+FIFA World Cup,Argentina,2020s,24,False
+FIFA World Cup,France,2020s,24,False
+FIFA World Cup,Portugal,2020s,24,False
+FIFA World Cup,Switzerland,2020s,24,False
+NWSL,North Carolina Courage,2010s,24,False
+FIFA World Cup,Morocco,2020s,25,False
+FIFA World Cup,Brazil,2020s,26,False

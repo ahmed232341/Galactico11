@@ -1,0 +1,10 @@
+start_year: 2017
+end_year: 2026
+years: null
+export_format: json
+min_minutes_played: 900
+paths:
+  raw_data: data/raw
+  processed_data: data/processed
+  exports: data/exports
+  logs: logs

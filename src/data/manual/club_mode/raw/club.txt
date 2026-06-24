@@ -1,0 +1,599 @@
+# GALACTICO11 CLUB MODE MASTER IMPORT TEXT
+# Parser-friendly text generated from uploaded research markdown.
+# Format: INI-like sections + CSV blocks. Use section headers as boundaries.
+
+[META]
+version=1
+source=Pasted markdown.md
+purpose=club_mode_parser_seed
+notes=Representative seed data and full competition universes from research report.
+
+[MODE_RULES]
+champions_league_basis=UEFA Champions League 2023/24 32-team field
+champions_league_team_count=32
+premier_league_team_count=20
+premier_league_matches=38
+la_liga_team_count=20
+la_liga_matches=38
+serie_a_team_count=20
+serie_a_matches=38
+bundesliga_team_count=18
+bundesliga_matches=34
+ligue_1_team_count=18
+ligue_1_matches=34
+
+[LEAGUE_MULTIPLIERS]
+Premier League=1.00
+La Liga=0.98
+Serie A=0.96
+Bundesliga=0.95
+Ligue 1=0.92
+Champions League=1.00
+
+[IMPORT_SCHEMA]
+club,league,country,player,position,role_bucket,minutes,goals,assists,clean_sheets,tackles_interceptions,key_passes_dribbles,shots_on_target,league_multiplier,iog_seed_pre_norm,estimated
+
+[COMPETITION:Champions League]
+club_count=32
+clubs=B. Dortmund|Real Madrid|Bayern Munich|Paris Saint-Germain|Arsenal|Atletico Madrid|Barcelona|Manchester City|Copenhagen|Inter|Lazio|RB Leipzig|Napoli|Porto|PSV|Real Sociedad|Royal Antwerp|Benfica|Braga|Celtic|Crvena Zvezda|Feyenoord|Galatasaray|Lens|Manchester United|Milan|Newcastle United|Salzburg|Sevilla|Shakhtar Donetsk|Union Berlin|Young Boys
+club=B. Dortmund
+club=Real Madrid
+club=Bayern Munich
+club=Paris Saint-Germain
+club=Arsenal
+club=Atletico Madrid
+club=Barcelona
+club=Manchester City
+club=Copenhagen
+club=Inter
+club=Lazio
+club=RB Leipzig
+club=Napoli
+club=Porto
+club=PSV
+club=Real Sociedad
+club=Royal Antwerp
+club=Benfica
+club=Braga
+club=Celtic
+club=Crvena Zvezda
+club=Feyenoord
+club=Galatasaray
+club=Lens
+club=Manchester United
+club=Milan
+club=Newcastle United
+club=Salzburg
+club=Sevilla
+club=Shakhtar Donetsk
+club=Union Berlin
+club=Young Boys
+
+[COMPETITION:Bundesliga]
+club_count=8
+clubs=`GK`|`CB`|`FB`|`CDM`|`CM`|`CAM`|`Winger`|`ST`
+club=`GK`
+club=`CB`
+club=`FB`
+club=`CDM`
+club=`CM`
+club=`CAM`
+club=`Winger`
+club=`ST`
+
+[COMPETITION:Ligue 1]
+club_count=8
+clubs=`GK`|`CB`|`FB`|`CDM`|`CM`|`CAM`|`Winger`|`ST`
+club=`GK`
+club=`CB`
+club=`FB`
+club=`CDM`
+club=`CM`
+club=`CAM`
+club=`Winger`
+club=`ST`
+
+[COMPETITION:Premier League]
+club_count=8
+clubs=`GK`|`CB`|`FB`|`CDM`|`CM`|`CAM`|`Winger`|`ST`
+club=`GK`
+club=`CB`
+club=`FB`
+club=`CDM`
+club=`CM`
+club=`CAM`
+club=`Winger`
+club=`ST`
+
+[COMPETITION:La Liga]
+club_count=8
+clubs=`GK`|`CB`|`FB`|`CDM`|`CM`|`CAM`|`Winger`|`ST`
+club=`GK`
+club=`CB`
+club=`FB`
+club=`CDM`
+club=`CM`
+club=`CAM`
+club=`Winger`
+club=`ST`
+
+[COMPETITION:Serie A]
+club_count=8
+clubs=`GK`|`CB`|`FB`|`CDM`|`CM`|`CAM`|`Winger`|`ST`
+club=`GK`
+club=`CB`
+club=`FB`
+club=`CDM`
+club=`CM`
+club=`CAM`
+club=`Winger`
+club=`ST`
+
+[SAMPLE_CLUBS]
+Champions League=Liverpool|Bayern Munich|Paris Saint-Germain
+Bundesliga=Bayern Munich|Bayer Leverkusen|Borussia Dortmund
+Ligue 1=Paris Saint-Germain|Marseille|Monaco
+Premier League=Liverpool|Arsenal|Manchester City
+La Liga=Barcelona|Real Madrid|Atletico Madrid
+Serie A=Inter|Napoli|Juventus
+
+[IOG_PSEUDOCODE]
+for player in dataset:
+    role = role_bucket(player.position)
+    lm = league_multiplier(player.league)
+    exp = min(player.minutes / 20000, 1.0)
+
+    if role == "GK":
+        raw = 40 + 1.7*clean_sheets + 6*exp
+    elif role == "CB":
+        raw = 36 + 0.32*tackles_interceptions + 1.0*clean_sheets + 1.4*goals + 6*exp
+    elif role == "FB":
+        raw = 34 + 0.18*tackles_interceptions + 0.14*key_passes_dribbles + 1.6*assists + 1.2*goals + 0.6*clean_sheets + 6*exp
+    elif role == "CDM":
+        raw = 35 + 0.24*tackles_interceptions + 0.14*key_passes_dribbles + 1.0*assists + 0.8*goals + 6*exp
+    elif role == "CM":
+        raw = 34 + 0.08*tackles_interceptions + 0.20*key_passes_dribbles + 1.5*assists + 1.3*goals + 6*exp
+    elif role == "CAM":
+        raw = 36 + 0.24*key_passes_dribbles + 1.8*assists + 1.5*goals + 0.18*shots_on_target + 6*exp
+    elif role == "Winger":
+        raw = 35 + 0.18*key_passes_dribbles + 1.5*assists + 1.9*goals + 0.20*shots_on_target + 6*exp
+    elif role == "ST":
+        raw = 34 + 2.2*goals + 1.1*assists + 0.32*shots_on_target + 6*exp
+
+    seed = raw * lm
+
+# Later:
+# normalize seed within role bucket to final game IoG band such as 50-99
+
+[PLAYER_SAMPLE_CSV_BLOCK:1]
+player,position,minutes,goals,assists,extra,role_bucket,league_multiplier,iog_seed_pre_norm
+Alisson,GK,3452,0,0,CS:14,GK,1.0,64.8
+Trent Alexander-Arnold,RB,3190,3,5,TI:158,FB,1.0,97.6
+Mohamed Salah,RW,3168,11,7,SOT:54,Winger,1.0,114.9
+Alexis Mac Allister,CM,3082,3,6,KPD:146,CM,1.0,85.1
+Virgil van Dijk,CB,2872,3,0,TI:133,CB,1.0,94.6
+Andrew Robertson,LB,2750,1,5,TI:135,FB,1.0,87.4
+Ryan Gravenberch,CM,2642,4,3,KPD:123,CM,1.0,76.0
+Dominik Szoboszlai,CAM,2512,7,7,KPD:157,CAM,1.0,104.4
+[/PLAYER_SAMPLE_CSV_BLOCK]
+
+[PLAYER_SAMPLE_CSV_BLOCK:2]
+player,position,minutes,goals,assists,extra,role_bucket,league_multiplier,iog_seed_pre_norm
+Achraf Hakimi,RB,3292,3,7,TI:162,FB,0.92,93.7
+Vitinha,CDM,3250,2,4,TI:188,CDM,0.92,94.1
+Joao Neves,CM,3118,4,7,KPD:147,CM,0.92,81.1
+Nuno Mendes,LB,2938,3,5,TI:147,FB,0.92,86.6
+Khvicha Kvaratskhelia,LW,2916,11,6,SOT:53,Winger,0.92,102.2
+Gianluigi Donnarumma,GK,2906,0,0,CS:12,GK,0.92,56.4
+[/PLAYER_SAMPLE_CSV_BLOCK]
+
+[PLAYER_SAMPLE_CSV_BLOCK:3]
+player,position,minutes,goals,assists,extra,role_bucket,league_multiplier,iog_seed_pre_norm
+Alejandro Grimaldo,LB,3364,2,6,TI:165,FB,0.95,94.9
+Jonathan Tah,CB,3322,3,2,TI:149,CB,0.95,96.8
+Florian Wirtz,CAM,3276,9,10,KPD:202,CAM,0.95,119.7
+Granit Xhaka,CM,3102,4,5,KPD:147,CM,0.95,82.4
+Jeremie Frimpong,RB,2894,3,7,TI:145,FB,0.95,90.6
+Victor Boniface,ST,2562,10,4,SOT:52,ST,0.95,87.1
+[/PLAYER_SAMPLE_CSV_BLOCK]
+
+[PLAYER_SAMPLE_CSV_BLOCK:4]
+player,position,minutes,goals,assists,extra,role_bucket,league_multiplier,iog_seed_pre_norm
+Pau Cubarsi,CB,3376,3,0,TI:151,CB,0.98,100.5
+Robert Lewandowski,ST,3042,12,4,SOT:63,ST,0.98,84.2
+Pedri,CM,2962,5,7,KPD:143,CM,0.98,86.6
+Lamine Yamal,RW,2946,8,6,SOT:41,Winger,0.98,101.1
+Jules Kounde,RB,2842,3,6,TI:143,FB,0.98,92.2
+Dani Olmo,CAM,2764,7,8,KPD:167,CAM,0.98,106.8
+[/PLAYER_SAMPLE_CSV_BLOCK]
+
+[PLAYER_SAMPLE_CSV_BLOCK:5]
+player,position,minutes,goals,assists,extra,role_bucket,league_multiplier,iog_seed_pre_norm
+Yann Sommer,GK,3446,0,0,CS:14,GK,0.96,62.2
+Federico Dimarco,LB,3352,2,6,TI:165,FB,0.96,95.8
+Hakan Calhanoglu,CDM,3328,2,3,TI:191,CDM,0.96,98.2
+Lautaro Martinez,ST,3276,16,4,SOT:79,ST,0.96,95.9
+Alessandro Bastoni,CB,3196,3,0,TI:144,CB,0.96,95.3
+Nicolo Barella,CM,2992,3,4,KPD:144,CM,0.96,78.3
+[/PLAYER_SAMPLE_CSV_BLOCK]
+
+[PLAYER_SAMPLE_CSV_BLOCK:6]
+club,league,country,player,position,role_bucket,minutes,goals,assists,clean_sheets,tackles_interceptions,key_passes_dribbles,shots_on_target,league_multiplier,iog_seed_pre_norm,estimated
+Liverpool,Premier League,England,Alisson,GK,GK,3452,0,0,14,0,0,0,1.0,64.8,true
+Liverpool,Premier League,England,Trent Alexander-Arnold,RB,FB,3190,3,5,13,158,106,16,1.0,97.6,true
+[/PLAYER_SAMPLE_CSV_BLOCK]
+
+[PLAYER_ROWS_NORMALIZED_CSV]
+club,league,country,player,position,role_bucket,minutes,goals,assists,clean_sheets,tackles_interceptions,key_passes_dribbles,shots_on_target,league_multiplier,iog_seed_pre_norm,estimated
+Liverpool,Premier League,England,Alisson,GK,GK,3452,0,0,14,0,0,0,1.0,64.8,true
+Liverpool,Premier League,England,Trent Alexander-Arnold,RB,FB,3190,3,5,0,158,0,0,1.0,97.6,true
+Liverpool,Premier League,England,Mohamed Salah,RW,Winger,3168,11,7,0,0,0,54,1.0,114.9,true
+Liverpool,Premier League,England,Alexis Mac Allister,CM,CM,3082,3,6,0,0,146,0,1.0,85.1,true
+Liverpool,Premier League,England,Virgil van Dijk,CB,CB,2872,3,0,0,133,0,0,1.0,94.6,true
+Liverpool,Premier League,England,Andrew Robertson,LB,FB,2750,1,5,0,135,0,0,1.0,87.4,true
+Liverpool,Premier League,England,Ryan Gravenberch,CM,CM,2642,4,3,0,0,123,0,1.0,76.0,true
+Liverpool,Premier League,England,Dominik Szoboszlai,CAM,CAM,2512,7,7,0,0,157,0,1.0,104.4,true
+Paris Saint-Germain,Ligue 1,France,Achraf Hakimi,RB,FB,3292,3,7,0,162,0,0,0.92,93.7,true
+Paris Saint-Germain,Ligue 1,France,Vitinha,CDM,CDM,3250,2,4,0,188,0,0,0.92,94.1,true
+Paris Saint-Germain,Ligue 1,France,Joao Neves,CM,CM,3118,4,7,0,0,147,0,0.92,81.1,true
+Paris Saint-Germain,Ligue 1,France,Nuno Mendes,LB,FB,2938,3,5,0,147,0,0,0.92,86.6,true
+Paris Saint-Germain,Ligue 1,France,Khvicha Kvaratskhelia,LW,Winger,2916,11,6,0,0,0,53,0.92,102.2,true
+Paris Saint-Germain,Ligue 1,France,Gianluigi Donnarumma,GK,GK,2906,0,0,12,0,0,0,0.92,56.4,true
+Bayer Leverkusen,Bundesliga,Germany,Alejandro Grimaldo,LB,FB,3364,2,6,0,165,0,0,0.95,94.9,true
+Bayer Leverkusen,Bundesliga,Germany,Jonathan Tah,CB,CB,3322,3,2,0,149,0,0,0.95,96.8,true
+Bayer Leverkusen,Bundesliga,Germany,Florian Wirtz,CAM,CAM,3276,9,10,0,0,202,0,0.95,119.7,true
+Bayer Leverkusen,Bundesliga,Germany,Granit Xhaka,CM,CM,3102,4,5,0,0,147,0,0.95,82.4,true
+Bayer Leverkusen,Bundesliga,Germany,Jeremie Frimpong,RB,FB,2894,3,7,0,145,0,0,0.95,90.6,true
+Bayer Leverkusen,Bundesliga,Germany,Victor Boniface,ST,ST,2562,10,4,0,0,0,52,0.95,87.1,true
+Barcelona,La Liga,Spain,Pau Cubarsi,CB,CB,3376,3,0,0,151,0,0,0.98,100.5,true
+Barcelona,La Liga,Spain,Robert Lewandowski,ST,ST,3042,12,4,0,0,0,63,0.98,84.2,true
+Barcelona,La Liga,Spain,Pedri,CM,CM,2962,5,7,0,0,143,0,0.98,86.6,true
+Barcelona,La Liga,Spain,Lamine Yamal,RW,Winger,2946,8,6,0,0,0,41,0.98,101.1,true
+Barcelona,La Liga,Spain,Jules Kounde,RB,FB,2842,3,6,0,143,0,0,0.98,92.2,true
+Barcelona,La Liga,Spain,Dani Olmo,CAM,CAM,2764,7,8,0,0,167,0,0.98,106.8,true
+Inter,Serie A,Italy,Yann Sommer,GK,GK,3446,0,0,14,0,0,0,0.96,62.2,true
+Inter,Serie A,Italy,Federico Dimarco,LB,FB,3352,2,6,0,165,0,0,0.96,95.8,true
+Inter,Serie A,Italy,Hakan Calhanoglu,CDM,CDM,3328,2,3,0,191,0,0,0.96,98.2,true
+Inter,Serie A,Italy,Lautaro Martinez,ST,ST,3276,16,4,0,0,0,79,0.96,95.9,true
+Inter,Serie A,Italy,Alessandro Bastoni,CB,CB,3196,3,0,0,144,0,0,0.96,95.3,true
+Inter,Serie A,Italy,Nicolo Barella,CM,CM,2992,3,4,0,0,144,0,0.96,78.3,true
+[/PLAYER_ROWS_NORMALIZED_CSV]
+
+==================================================
+GALACTICO11 CLUB MODE DATABASE
+==================================================
+
+REMOVE ALL OF THE FOLLOWING:
+
+NWSL
+WSL
+Women's Super League
+North Carolina Courage
+Kansas City Current
+Angel City
+Portland Thorns
+Gotham FC
+Washington Spirit
+Orlando Pride
+Utah Royals
+San Diego Wave
+Bay FC
+Chicago Stars
+Seattle Reign
+Racing Louisville
+Houston Dash
+Any women's football club
+Any women's football competition
+
+These must NEVER appear in Club Mode.
+
+==================================================
+SUPPORTED COMPETITIONS ONLY
+==================================================
+
+LEAGUE FORMAT
+
+Premier League
+20 Clubs
+
+La Liga
+20 Clubs
+
+Serie A
+20 Clubs
+
+Bundesliga
+18 Clubs
+
+Ligue 1
+18 Clubs
+
+==================================================
+CHAMPIONS LEAGUE FORMAT
+==================================================
+
+32 Clubs
+
+Only clubs from:
+
+Premier League
+La Liga
+Serie A
+Bundesliga
+Ligue 1
+
+==================================================
+UNIVERSE FORMAT
+==================================================
+
+Examples:
+
+2010s • Barcelona • La Liga
+
+2000s • Milan • Serie A
+
+2020s • Arsenal • Premier League
+
+2020s • Bayern Munich • Bundesliga
+
+2020s • PSG • Ligue 1
+
+==================================================
+DISALLOWED LEAGUES
+==================================================
+
+NWSL
+MLS
+Saudi League
+Qatar League
+Iran League
+Chinese Super League
+A-League
+Women's leagues
+
+Unless explicitly added later.
+
+==================================================
+CLUB MODE DATASET TARGET
+==================================================
+
+Premier League:
+20 clubs
+20-25 players each
+
+La Liga:
+20 clubs
+20-25 players each
+
+Serie A:
+20 clubs
+20-25 players each
+
+Bundesliga:
+18 clubs
+20-25 players each
+
+Ligue 1:
+18 clubs
+20-25 players each
+
+Champions League:
+32 clubs
+20-25 players each
+
+Expected player pool:
+2000-3000+ players
+
+==================================================
+OUTPUT
+==================================================
+
+Club Mode should only spin clubs from:
+
+Premier League
+La Liga
+Serie A
+Bundesliga
+Ligue 1
+
+No NWSL clubs.
+No women's football clubs.
+No North Carolina Courage.
+No mixed databases.
+
+==================================================
+GALACTICO11 CLUB MODE
+==================================================
+
+MODE: LEAGUE
+
+PREMIER LEAGUE
+Arsenal
+Aston Villa
+Bournemouth
+Brentford
+Brighton
+Burnley
+Chelsea
+Crystal Palace
+Everton
+Fulham
+Leeds United
+Liverpool
+Manchester City
+Manchester United
+Newcastle United
+Nottingham Forest
+Sunderland
+Tottenham Hotspur
+West Ham United
+Wolverhampton Wanderers
+
+LA LIGA
+Real Madrid
+Barcelona
+Atletico Madrid
+Athletic Club
+Real Sociedad
+Villarreal
+Valencia
+Sevilla
+Real Betis
+Celta Vigo
+Getafe
+Osasuna
+Mallorca
+Rayo Vallecano
+Girona
+Alaves
+Espanyol
+Elche
+Levante
+Oviedo
+
+SERIE A
+Inter
+AC Milan
+Juventus
+Napoli
+Roma
+Lazio
+Atalanta
+Fiorentina
+Bologna
+Torino
+Udinese
+Genoa
+Parma
+Como
+Cagliari
+Verona
+Lecce
+Pisa
+Sassuolo
+Cremonese
+
+BUNDESLIGA
+Bayern Munich
+Borussia Dortmund
+Bayer Leverkusen
+RB Leipzig
+Eintracht Frankfurt
+VfB Stuttgart
+Freiburg
+Mainz
+Werder Bremen
+Borussia Monchengladbach
+Union Berlin
+Wolfsburg
+Augsburg
+Hoffenheim
+St Pauli
+Heidenheim
+Koln
+Hamburg
+
+LIGUE 1
+Paris Saint-Germain
+Marseille
+Monaco
+Lille
+Lyon
+Lens
+Nice
+Strasbourg
+Brest
+Rennes
+Nantes
+Toulouse
+Auxerre
+Le Havre
+Angers
+Metz
+Lorient
+Paris FC
+
+==================================================
+MODE: CHAMPIONS_LEAGUE
+==================================================
+
+Real Madrid
+Barcelona
+Atletico Madrid
+Bayern Munich
+Borussia Dortmund
+Bayer Leverkusen
+PSG
+Marseille
+Monaco
+Inter
+AC Milan
+Juventus
+Napoli
+Roma
+Arsenal
+Liverpool
+Manchester City
+Manchester United
+Chelsea
+Tottenham
+Newcastle United
+Aston Villa
+Benfica
+Porto
+Sporting CP
+Ajax
+PSV
+Feyenoord
+Club Brugge
+Celtic
+Galatasaray
+Shakhtar Donetsk
+
+==================================================
+GENERATION RULES
+==================================================
+
+For every club:
+Generate minimum 20 players.
+
+Target:
+22-25 players per club.
+
+Positions:
+3 GK
+3 RB/LB
+4 CB
+3 CDM/CM
+3 CAM/CM
+2 RW
+2 LW
+3 ST
+
+Required fields:
+
+id
+name
+club
+league
+competition
+position
+roleBucket
+minutes
+goals
+assists
+cleanSheets
+tackles
+interceptions
+shots
+shotsOnTarget
+savePct
+iog
+
+Era support:
+1990s
+2000s
+2010s
+2020s
+
+[END]

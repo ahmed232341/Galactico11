@@ -1,0 +1,26 @@
+{
+  "valid": true,
+  "total_players": 18405,
+  "errors": [],
+  "missing_names": [],
+  "missing_nations": [],
+  "missing_positions": [],
+  "missing_clubs": [],
+  "missing_iog": [],
+  "duplicate_ids": [],
+  "invalid_records": [],
+  "position_distribution": {
+    "CAM": 3066,
+    "CB": 4203,
+    "CDM": 2999,
+    "CM": 5238,
+    "GK": 2062,
+    "LB": 2230,
+    "LM": 3954,
+    "LW": 2022,
+    "RB": 2292,
+    "RM": 4064,
+    "RW": 2000,
+    "ST": 3414
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "competition_id": 11,
+  "season_id": 1,
+  "country_name": "Spain",
+  "competition_name": "La Liga",
+  "competition_gender": "male",
+  "competition_youth": false,
+  "competition_international": false,
+  "season_name": "2017/2018",
+  "match_updated": "2025-07-14T10:01:16.674864",
+  "match_updated_360": "2021-06-13T16:17:31.694",
+  "match_available_360": NaN,
+  "match_available": "2025-07-14T10:01:16.674864"
+}

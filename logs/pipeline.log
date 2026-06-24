@@ -1,0 +1,682 @@
+2026-06-10 23:58:40,298 INFO Pipeline started: 2026-06-11T06:58:40.298265
+2026-06-10 23:58:40,298 INFO Config: {
+  "start_year": 2017,
+  "end_year": 2026,
+  "years": null,
+  "export_format": "json",
+  "min_minutes_played": 900,
+  "paths": {
+    "raw_data": "data/raw",
+    "processed_data": "data/processed",
+    "exports": "data/exports",
+    "logs": "logs"
+  }
+}
+2026-06-10 23:58:40,298 INFO Args: {'config': WindowsPath('C:/Users/ahmed/galactico11/config/pipeline.yaml'), 'start_year': None, 'end_year': None, 'years': None, 'skip_fetch': False, 'skip_export': False, 'export_format': None, 'min_minutes': None}
+2026-06-10 23:58:46,978 INFO Step Fetching StatsBomb data
+2026-06-10 23:58:46,978 INFO Command: 'C:\Python313\python.exe' 'C:\Users\ahmed\galactico11\scripts\fetch_statsbomb.py' --raw-data 'data\raw' --years 2017 2018 2019 2020 2021 2022 2023 2024 2025 2026
+2026-06-10 23:58:46,978 INFO Return code: 1
+2026-06-10 23:58:46,978 INFO Stdout: 
+2026-06-10 23:58:46,978 INFO Stderr: C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\statsbombpy\api_client.py:21: NoAuthWarning: credentials were not supplied. open data access only
+  warnings.warn(
+Traceback (most recent call last):
+  File "C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\pandas\core\indexes\base.py", line 3641, in get_loc
+    return self._engine.get_loc(casted_key)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "pandas/_libs/index.pyx", line 168, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 197, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7668, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7676, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'season'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\ahmed\galactico11\scripts\fetch_statsbomb.py", line 108, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\ahmed\galactico11\scripts\fetch_statsbomb.py", line 102, in main
+    download_competitions(args.raw_data, years=args.years, competitions=args.competitions, force=args.force)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\galactico11\scripts\fetch_statsbomb.py", line 34, in download_competitions
+    comps = comps[comps["season"].astype(str).isin(years)]
+                  ~~~~~^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\pandas\core\frame.py", line 4378, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\pandas\core\indexes\base.py", line 3648, in get_loc
+    raise KeyError(key) from err
+KeyError: 'season'
+2026-06-10 23:58:46,979 ERROR Step failed: Fetching StatsBomb data
+2026-06-10 23:58:46,979 ERROR Command: 'C:\Python313\python.exe' 'C:\Users\ahmed\galactico11\scripts\fetch_statsbomb.py' --raw-data 'data\raw' --years 2017 2018 2019 2020 2021 2022 2023 2024 2025 2026
+2026-06-10 23:58:46,979 ERROR Stderr: C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\statsbombpy\api_client.py:21: NoAuthWarning: credentials were not supplied. open data access only
+  warnings.warn(
+Traceback (most recent call last):
+  File "C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\pandas\core\indexes\base.py", line 3641, in get_loc
+    return self._engine.get_loc(casted_key)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "pandas/_libs/index.pyx", line 168, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 197, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7668, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7676, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'season'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\ahmed\galactico11\scripts\fetch_statsbomb.py", line 108, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\ahmed\galactico11\scripts\fetch_statsbomb.py", line 102, in main
+    download_competitions(args.raw_data, years=args.years, competitions=args.competitions, force=args.force)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\galactico11\scripts\fetch_statsbomb.py", line 34, in download_competitions
+    comps = comps[comps["season"].astype(str).isin(years)]
+                  ~~~~~^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\pandas\core\frame.py", line 4378, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\pandas\core\indexes\base.py", line 3648, in get_loc
+    raise KeyError(key) from err
+KeyError: 'season'
+2026-06-11 00:17:13,844 INFO Pipeline started: 2026-06-11T07:17:13.844389
+2026-06-11 00:17:13,844 INFO Config: {
+  "start_year": 2017,
+  "end_year": 2026,
+  "years": null,
+  "export_format": "json",
+  "min_minutes_played": 900,
+  "paths": {
+    "raw_data": "data/raw",
+    "processed_data": "data/processed",
+    "exports": "data/exports",
+    "logs": "logs"
+  }
+}
+2026-06-11 00:17:13,844 INFO Args: {'config': WindowsPath('C:/Users/ahmed/galactico11/config/pipeline.yaml'), 'start_year': None, 'end_year': None, 'years': None, 'skip_fetch': False, 'skip_export': False, 'export_format': None, 'min_minutes': None}
+2026-06-13 19:30:23,886 INFO Pipeline started: 2026-06-14T02:30:23.886344
+2026-06-13 19:30:23,886 INFO Config: {
+  "start_year": 2017,
+  "end_year": 2026,
+  "years": null,
+  "export_format": "json",
+  "min_minutes_played": 900,
+  "paths": {
+    "raw_data": "data/raw",
+    "processed_data": "data/processed",
+    "exports": "data/exports",
+    "logs": "logs"
+  }
+}
+2026-06-13 19:30:23,886 INFO Args: {'config': WindowsPath('C:/Users/ahmed/galactico11/config/pipeline.yaml'), 'start_year': None, 'end_year': None, 'years': None, 'skip_fetch': True, 'skip_export': False, 'export_format': None, 'min_minutes': None}
+2026-06-13 19:31:14,978 INFO Pipeline started: 2026-06-14T02:31:14.978262
+2026-06-13 19:31:14,978 INFO Config: {
+  "start_year": 2017,
+  "end_year": 2026,
+  "years": null,
+  "export_format": "json",
+  "min_minutes_played": 900,
+  "paths": {
+    "raw_data": "data/raw",
+    "processed_data": "data/processed",
+    "exports": "data/exports",
+    "logs": "logs"
+  }
+}
+2026-06-13 19:31:14,978 INFO Args: {'config': WindowsPath('C:/Users/ahmed/galactico11/config/pipeline.yaml'), 'start_year': None, 'end_year': None, 'years': None, 'skip_fetch': True, 'skip_export': False, 'export_format': None, 'min_minutes': None}
+2026-06-13 19:32:39,171 INFO Step Building player statistics
+2026-06-13 19:32:39,171 INFO Command: 'C:\Python313\python.exe' 'C:\Users\ahmed\galactico11\scripts\build_player_stats.py' --raw-data 'data\raw' --processed-data 'data\processed' --min-minutes 900
+2026-06-13 19:32:39,171 INFO Return code: 1
+2026-06-13 19:32:39,171 INFO Stdout: 
+2026-06-13 19:32:39,171 INFO Stderr: Traceback (most recent call last):
+  File "C:\Users\ahmed\galactico11\scripts\build_player_stats.py", line 262, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\ahmed\galactico11\scripts\build_player_stats.py", line 258, in main
+    build_player_stats(raw_data_dir=args.raw_data, processed_data_dir=args.processed_data, min_minutes=args.min_minutes)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\galactico11\scripts\build_player_stats.py", line 244, in build_player_stats
+    df = df[df["minutes"] >= min_minutes].copy()
+            ~~^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\pandas\core\frame.py", line 4378, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\pandas\core\indexes\range.py", line 525, in get_loc
+    raise KeyError(key)
+KeyError: 'minutes'
+2026-06-13 19:32:39,172 ERROR Step failed: Building player statistics
+2026-06-13 19:32:39,172 ERROR Command: 'C:\Python313\python.exe' 'C:\Users\ahmed\galactico11\scripts\build_player_stats.py' --raw-data 'data\raw' --processed-data 'data\processed' --min-minutes 900
+2026-06-13 19:32:39,172 ERROR Stderr: Traceback (most recent call last):
+  File "C:\Users\ahmed\galactico11\scripts\build_player_stats.py", line 262, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\ahmed\galactico11\scripts\build_player_stats.py", line 258, in main
+    build_player_stats(raw_data_dir=args.raw_data, processed_data_dir=args.processed_data, min_minutes=args.min_minutes)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\galactico11\scripts\build_player_stats.py", line 244, in build_player_stats
+    df = df[df["minutes"] >= min_minutes].copy()
+            ~~^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\pandas\core\frame.py", line 4378, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\pandas\core\indexes\range.py", line 525, in get_loc
+    raise KeyError(key)
+KeyError: 'minutes'
+2026-06-13 19:33:33,346 INFO Step Building player statistics
+2026-06-13 19:33:33,346 INFO Command: 'C:\Python313\python.exe' 'C:\Users\ahmed\galactico11\scripts\build_player_stats.py' --raw-data 'data\raw' --processed-data 'data\processed' --min-minutes 900
+2026-06-13 19:33:33,346 INFO Return code: 1
+2026-06-13 19:33:33,346 INFO Stdout: 
+2026-06-13 19:33:33,346 INFO Stderr: Traceback (most recent call last):
+  File "C:\Users\ahmed\galactico11\scripts\build_player_stats.py", line 262, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\ahmed\galactico11\scripts\build_player_stats.py", line 258, in main
+    build_player_stats(raw_data_dir=args.raw_data, processed_data_dir=args.processed_data, min_minutes=args.min_minutes)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\galactico11\scripts\build_player_stats.py", line 244, in build_player_stats
+    df = df[df["minutes"] >= min_minutes].copy()
+            ~~^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\pandas\core\frame.py", line 4378, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\pandas\core\indexes\range.py", line 525, in get_loc
+    raise KeyError(key)
+KeyError: 'minutes'
+2026-06-13 19:33:33,346 ERROR Step failed: Building player statistics
+2026-06-13 19:33:33,346 ERROR Command: 'C:\Python313\python.exe' 'C:\Users\ahmed\galactico11\scripts\build_player_stats.py' --raw-data 'data\raw' --processed-data 'data\processed' --min-minutes 900
+2026-06-13 19:33:33,346 ERROR Stderr: Traceback (most recent call last):
+  File "C:\Users\ahmed\galactico11\scripts\build_player_stats.py", line 262, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\ahmed\galactico11\scripts\build_player_stats.py", line 258, in main
+    build_player_stats(raw_data_dir=args.raw_data, processed_data_dir=args.processed_data, min_minutes=args.min_minutes)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\galactico11\scripts\build_player_stats.py", line 244, in build_player_stats
+    df = df[df["minutes"] >= min_minutes].copy()
+            ~~^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\pandas\core\frame.py", line 4378, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\pandas\core\indexes\range.py", line 525, in get_loc
+    raise KeyError(key)
+KeyError: 'minutes'
+2026-06-13 19:36:33,298 INFO Pipeline started: 2026-06-14T02:36:33.298393
+2026-06-13 19:36:33,298 INFO Config: {
+  "start_year": 2017,
+  "end_year": 2026,
+  "years": null,
+  "export_format": "json",
+  "min_minutes_played": 900,
+  "paths": {
+    "raw_data": "data/raw",
+    "processed_data": "data/processed",
+    "exports": "data/exports",
+    "logs": "logs"
+  }
+}
+2026-06-13 19:36:33,299 INFO Args: {'config': WindowsPath('C:/Users/ahmed/galactico11/config/pipeline.yaml'), 'start_year': None, 'end_year': None, 'years': None, 'skip_fetch': True, 'skip_export': False, 'export_format': None, 'min_minutes': None}
+2026-06-13 19:38:38,591 INFO Step Building player statistics
+2026-06-13 19:38:38,591 INFO Command: 'C:\Python313\python.exe' 'C:\Users\ahmed\galactico11\scripts\build_player_stats.py' --raw-data 'data\raw' --processed-data 'data\processed' --min-minutes 900
+2026-06-13 19:38:38,591 INFO Return code: 0
+2026-06-13 19:38:38,591 INFO Stdout: Loaded matches rows=672
+Loaded events rows=828107
+player_stats dataframe columns: ['minutes']
+Filtering by min_minutes=900 (current rows=0)
+Wrote data\processed\player_stats.csv rows=0
+WARNING: Could not write parquet data\processed\player_stats.parquet: Unable to find a usable engine; tried using: 'pyarrow', 'fastparquet'.
+A suitable version of pyarrow or fastparquet is required for parquet support.
+Trying to import the above resulted in these errors:
+ - `Import pyarrow` failed. pyarrow is required for parquet support. Use pip or conda to install the pyarrow package.
+ - `Import fastparquet` failed. fastparquet is required for parquet support. Use pip or conda to install the fastparquet package.
+Built player stats for 0 player-seasons.
+2026-06-13 19:38:38,591 INFO Stderr: 
+2026-06-13 19:38:39,711 INFO Step Calculating IoG
+2026-06-13 19:38:39,711 INFO Command: 'C:\Python313\python.exe' 'C:\Users\ahmed\galactico11\scripts\calculate_iog.py' --processed-data 'data\processed'
+2026-06-13 19:38:39,711 INFO Return code: 1
+2026-06-13 19:38:39,712 INFO Stdout: WARNING: data\processed\player_stats.parquet missing; falling back to CSV: data\processed\player_stats.csv
+Loaded player_stats rows=0 columns=['minutes']
+2026-06-13 19:38:39,712 INFO Stderr: Traceback (most recent call last):
+  File "C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\pandas\core\indexes\base.py", line 3641, in get_loc
+    return self._engine.get_loc(casted_key)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "pandas/_libs/index.pyx", line 168, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 197, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7668, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7676, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'positions'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\ahmed\galactico11\scripts\calculate_iog.py", line 162, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\ahmed\galactico11\scripts\calculate_iog.py", line 158, in main
+    calculate_iog(args.processed_data)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\galactico11\scripts\calculate_iog.py", line 67, in calculate_iog
+    df["position_group"] = df["positions"].apply(infer_position_group)
+                           ~~^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\pandas\core\frame.py", line 4378, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\pandas\core\indexes\base.py", line 3648, in get_loc
+    raise KeyError(key) from err
+KeyError: 'positions'
+2026-06-13 19:38:39,712 ERROR Step failed: Calculating IoG
+2026-06-13 19:38:39,712 ERROR Command: 'C:\Python313\python.exe' 'C:\Users\ahmed\galactico11\scripts\calculate_iog.py' --processed-data 'data\processed'
+2026-06-13 19:38:39,712 ERROR Stderr: Traceback (most recent call last):
+  File "C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\pandas\core\indexes\base.py", line 3641, in get_loc
+    return self._engine.get_loc(casted_key)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "pandas/_libs/index.pyx", line 168, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 197, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7668, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7676, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'positions'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\ahmed\galactico11\scripts\calculate_iog.py", line 162, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\ahmed\galactico11\scripts\calculate_iog.py", line 158, in main
+    calculate_iog(args.processed_data)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\galactico11\scripts\calculate_iog.py", line 67, in calculate_iog
+    df["position_group"] = df["positions"].apply(infer_position_group)
+                           ~~^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\pandas\core\frame.py", line 4378, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\pandas\core\indexes\base.py", line 3648, in get_loc
+    raise KeyError(key) from err
+KeyError: 'positions'
+2026-06-13 23:46:08,223 INFO Pipeline started: 2026-06-14T06:46:08.223552
+2026-06-13 23:46:08,223 INFO Config: {
+  "start_year": 2017,
+  "end_year": 2026,
+  "years": null,
+  "export_format": "json",
+  "min_minutes_played": 900,
+  "paths": {
+    "raw_data": "data/raw",
+    "processed_data": "data/processed",
+    "exports": "data/exports",
+    "logs": "logs"
+  }
+}
+2026-06-13 23:46:08,223 INFO Args: {'config': WindowsPath('C:/Users/ahmed/galactico11/config/pipeline.yaml'), 'start_year': None, 'end_year': None, 'years': None, 'skip_fetch': False, 'skip_export': False, 'export_format': None, 'min_minutes': None}
+2026-06-13 23:46:13,026 INFO Step Fetching StatsBomb data
+2026-06-13 23:46:13,026 INFO Command: 'C:\Python313\python.exe' 'C:\Users\ahmed\galactico11\scripts\fetch_statsbomb.py' --raw-data 'data\raw' --years 2017 2018 2019 2020 2021 2022 2023 2024 2025 2026
+2026-06-13 23:46:13,026 INFO Return code: 1
+2026-06-13 23:46:13,026 INFO Stdout: 
+2026-06-13 23:46:13,026 INFO Stderr: C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\statsbombpy\api_client.py:21: NoAuthWarning: credentials were not supplied. open data access only
+  warnings.warn(
+C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\statsbombpy\api_client.py:21: NoAuthWarning: credentials were not supplied. open data access only
+  warnings.warn(
+Traceback (most recent call last):
+  File "C:\Users\ahmed\galactico11\scripts\fetch_statsbomb.py", line 133, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\ahmed\galactico11\scripts\fetch_statsbomb.py", line 128, in main
+    download_matches(args.raw_data, force=args.force)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\galactico11\scripts\fetch_statsbomb.py", line 92, in download_matches
+    save_json(filename, matches.to_dict(orient="records"))
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\galactico11\scripts\fetch_statsbomb.py", line 25, in save_json
+    with path.open("w", encoding="utf-8") as handle:
+         ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python313\Lib\pathlib\_local.py", line 537, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'data\\raw\\matches\\matches_La_Liga_1973\\1974.json'
+2026-06-13 23:46:13,026 ERROR Step failed: Fetching StatsBomb data
+2026-06-13 23:46:13,026 ERROR Command: 'C:\Python313\python.exe' 'C:\Users\ahmed\galactico11\scripts\fetch_statsbomb.py' --raw-data 'data\raw' --years 2017 2018 2019 2020 2021 2022 2023 2024 2025 2026
+2026-06-13 23:46:13,026 ERROR Stderr: C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\statsbombpy\api_client.py:21: NoAuthWarning: credentials were not supplied. open data access only
+  warnings.warn(
+C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\statsbombpy\api_client.py:21: NoAuthWarning: credentials were not supplied. open data access only
+  warnings.warn(
+Traceback (most recent call last):
+  File "C:\Users\ahmed\galactico11\scripts\fetch_statsbomb.py", line 133, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\ahmed\galactico11\scripts\fetch_statsbomb.py", line 128, in main
+    download_matches(args.raw_data, force=args.force)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\galactico11\scripts\fetch_statsbomb.py", line 92, in download_matches
+    save_json(filename, matches.to_dict(orient="records"))
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\galactico11\scripts\fetch_statsbomb.py", line 25, in save_json
+    with path.open("w", encoding="utf-8") as handle:
+         ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python313\Lib\pathlib\_local.py", line 537, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'data\\raw\\matches\\matches_La_Liga_1973\\1974.json'
+2026-06-13 23:46:50,623 INFO Pipeline started: 2026-06-14T06:46:50.623457
+2026-06-13 23:46:50,623 INFO Config: {
+  "start_year": 2017,
+  "end_year": 2026,
+  "years": null,
+  "export_format": "json",
+  "min_minutes_played": 900,
+  "paths": {
+    "raw_data": "data/raw",
+    "processed_data": "data/processed",
+    "exports": "data/exports",
+    "logs": "logs"
+  }
+}
+2026-06-13 23:46:50,623 INFO Args: {'config': WindowsPath('C:/Users/ahmed/galactico11/config/pipeline.yaml'), 'start_year': None, 'end_year': None, 'years': None, 'skip_fetch': True, 'skip_export': False, 'export_format': None, 'min_minutes': None}
+2026-06-13 23:49:27,370 INFO Step Building player statistics
+2026-06-13 23:49:27,370 INFO Command: 'C:\Python313\python.exe' 'C:\Users\ahmed\galactico11\scripts\build_player_stats.py' --raw-data 'data\raw' --processed-data 'data\processed' --min-minutes 900
+2026-06-13 23:49:27,370 INFO Return code: 0
+2026-06-13 23:49:27,370 INFO Stdout: Loaded matches rows=672
+Total events loaded: 828107
+Available columns: ['50_50', 'ball_receipt_outcome', 'ball_recovery_recovery_failure', 'block_deflection', 'carry_end_location', 'clearance_aerial_won', 'clearance_body_part', 'clearance_head', 'clearance_left_foot', 'clearance_right_foot', 'counterpress', 'dribble_nutmeg', 'dribble_outcome', 'dribble_overrun', 'duel_outcome', 'duel_type', 'duration', 'foul_committed_advantage', 'foul_committed_card', 'foul_committed_type', 'foul_won_advantage', 'foul_won_defensive', 'goalkeeper_body_part', 'goalkeeper_end_location', 'goalkeeper_outcome', 'goalkeeper_position', 'goalkeeper_shot_saved_to_post', 'goalkeeper_technique', 'goalkeeper_type', 'id', 'index', 'injury_stoppage_in_chain', 'interception_outcome', 'location', 'match_id', 'minute', 'off_camera', 'out', 'pass_aerial_won', 'pass_angle', 'pass_assisted_shot_id', 'pass_body_part', 'pass_cross', 'pass_cut_back', 'pass_end_location', 'pass_goal_assist', 'pass_height', 'pass_inswinging', 'pass_length', 'pass_outcome', 'pass_outswinging', 'pass_recipient', 'pass_recipient_id', 'pass_shot_assist', 'pass_straight', 'pass_switch', 'pass_technique', 'pass_through_ball', 'pass_type', 'period', 'play_pattern', 'player', 'player_id', 'position', 'possession', 'possession_team', 'possession_team_id', 'related_events', 'second', 'shot_aerial_won', 'shot_body_part', 'shot_deflected', 'shot_end_location', 'shot_first_time', 'shot_freeze_frame', 'shot_key_pass_id', 'shot_one_on_one', 'shot_outcome', 'shot_saved_to_post', 'shot_statsbomb_xg', 'shot_technique', 'shot_type', 'substitution_outcome', 'substitution_outcome_id', 'substitution_replacement', 'substitution_replacement_id', 'tactics', 'team', 'team_id', 'timestamp', 'type', 'under_pressure', 'competition_name', 'season', 'bad_behaviour_card', 'block_offensive', 'clearance_other', 'foul_committed_offensive', 'foul_committed_penalty', 'foul_won_penalty', 'pass_no_touch', 'miscontrol_aerial_won', 'pass_deflected', 'pass_miscommunication', 'shot_open_goal', 'shot_redirect', 'dribble_no_touch', 'ball_recovery_offensive', 'goalkeeper_shot_saved_off_target', 'shot_saved_off_target', 'block_save_block', 'goalkeeper_punched_out', 'goalkeeper_lost_in_play', 'goalkeeper_penalty_saved_to_post', 'pass_backheel', 'shot_follows_dribble', 'goalkeeper_success_in_play', 'half_start_late_video_start']
+Non-null player_id rows: 821037
+Non-null player_name rows: 821037
+Non-null team_name rows: 828107
+Non-null player_position rows: 782803
+player_stats dataframe columns: ['player_id', 'name', 'nationality', 'club', 'league', 'season', 'era', 'positions', 'goals', 'npxG', 'shots', 'shots_on_target', 'xG_per_shot', 'big_chances', 'assists', 'xA', 'key_passes', 'through_balls', 'chances_created', 'progressive_passes', 'progressive_carries', 'carries_into_box', 'passes_into_box', 'touches', 'possession_won', 'possession_lost', 'tackles', 'interceptions', 'blocks', 'clearances', 'pressures', 'counterpressures', 'saves', 'save_percentage', 'goals_prevented', 'possession_value', 'ball_progression_value', 'attacking_value', 'defensive_value', 'minutes']
+Filtering by min_minutes=900 (current rows=2447)
+Wrote data\processed\player_stats.csv rows=0
+WARNING: Could not write parquet data\processed\player_stats.parquet: Unable to find a usable engine; tried using: 'pyarrow', 'fastparquet'.
+A suitable version of pyarrow or fastparquet is required for parquet support.
+Trying to import the above resulted in these errors:
+ - `Import pyarrow` failed. pyarrow is required for parquet support. Use pip or conda to install the pyarrow package.
+ - `Import fastparquet` failed. fastparquet is required for parquet support. Use pip or conda to install the fastparquet package.
+Built player stats for 0 player-seasons.
+2026-06-13 23:49:27,370 INFO Stderr: 
+2026-06-13 23:49:28,345 INFO Step Calculating IoG
+2026-06-13 23:49:28,345 INFO Command: 'C:\Python313\python.exe' 'C:\Users\ahmed\galactico11\scripts\calculate_iog.py' --processed-data 'data\processed'
+2026-06-13 23:49:28,345 INFO Return code: 0
+2026-06-13 23:49:28,345 INFO Stdout: WARNING: data\processed\player_stats.parquet missing; falling back to CSV: data\processed\player_stats.csv
+Loaded player_stats rows=0 columns=['player_id', 'name', 'nationality', 'club', 'league', 'season', 'era', 'positions', 'goals', 'npxG', 'shots', 'shots_on_target', 'xG_per_shot', 'big_chances', 'assists', 'xA', 'key_passes', 'through_balls', 'chances_created', 'progressive_passes', 'progressive_carries', 'carries_into_box', 'passes_into_box', 'touches', 'possession_won', 'possession_lost', 'tackles', 'interceptions', 'blocks', 'clearances', 'pressures', 'counterpressures', 'saves', 'save_percentage', 'goals_prevented', 'possession_value', 'ball_progression_value', 'attacking_value', 'defensive_value', 'minutes']
+Wrote data\processed\player_iog.csv rows=0
+WARNING: Could not write parquet data\processed\player_iog.parquet: Unable to find a usable engine; tried using: 'pyarrow', 'fastparquet'.
+A suitable version of pyarrow or fastparquet is required for parquet support.
+Trying to import the above resulted in these errors:
+ - `Import pyarrow` failed. pyarrow is required for parquet support. Use pip or conda to install the pyarrow package.
+ - `Import fastparquet` failed. fastparquet is required for parquet support. Use pip or conda to install the fastparquet package.
+Calculated IoG for 0 player-seasons.
+2026-06-13 23:49:28,345 INFO Stderr: 
+2026-06-13 23:49:29,081 INFO Step Exporting players.json
+2026-06-13 23:49:29,081 INFO Command: 'C:\Python313\python.exe' 'C:\Users\ahmed\galactico11\scripts\export_players.py' --processed-data 'data\processed' --exports 'data\exports' --export-format json
+2026-06-13 23:49:29,081 INFO Return code: 1
+2026-06-13 23:49:29,081 INFO Stdout: 
+2026-06-13 23:49:29,081 INFO Stderr: Traceback (most recent call last):
+  File "C:\Users\ahmed\galactico11\scripts\export_players.py", line 59, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\ahmed\galactico11\scripts\export_players.py", line 55, in main
+    export_players(processed_data_dir=args.processed_data, exports_dir=args.exports, export_format=args.export_format)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\galactico11\scripts\export_players.py", line 14, in export_players
+    df = pd.read_parquet(processed_data_dir / "player_iog.parquet")
+  File "C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\pandas\io\parquet.py", line 668, in read_parquet
+    impl = get_engine(engine)
+  File "C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\pandas\io\parquet.py", line 68, in get_engine
+    raise ImportError(
+    ...<7 lines>...
+    )
+ImportError: Unable to find a usable engine; tried using: 'pyarrow', 'fastparquet'.
+A suitable version of pyarrow or fastparquet is required for parquet support.
+Trying to import the above resulted in these errors:
+ - `Import pyarrow` failed. pyarrow is required for parquet support. Use pip or conda to install the pyarrow package.
+ - `Import fastparquet` failed. fastparquet is required for parquet support. Use pip or conda to install the fastparquet package.
+2026-06-13 23:49:29,081 ERROR Step failed: Exporting players.json
+2026-06-13 23:49:29,081 ERROR Command: 'C:\Python313\python.exe' 'C:\Users\ahmed\galactico11\scripts\export_players.py' --processed-data 'data\processed' --exports 'data\exports' --export-format json
+2026-06-13 23:49:29,081 ERROR Stderr: Traceback (most recent call last):
+  File "C:\Users\ahmed\galactico11\scripts\export_players.py", line 59, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\ahmed\galactico11\scripts\export_players.py", line 55, in main
+    export_players(processed_data_dir=args.processed_data, exports_dir=args.exports, export_format=args.export_format)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\galactico11\scripts\export_players.py", line 14, in export_players
+    df = pd.read_parquet(processed_data_dir / "player_iog.parquet")
+  File "C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\pandas\io\parquet.py", line 668, in read_parquet
+    impl = get_engine(engine)
+  File "C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\pandas\io\parquet.py", line 68, in get_engine
+    raise ImportError(
+    ...<7 lines>...
+    )
+ImportError: Unable to find a usable engine; tried using: 'pyarrow', 'fastparquet'.
+A suitable version of pyarrow or fastparquet is required for parquet support.
+Trying to import the above resulted in these errors:
+ - `Import pyarrow` failed. pyarrow is required for parquet support. Use pip or conda to install the pyarrow package.
+ - `Import fastparquet` failed. fastparquet is required for parquet support. Use pip or conda to install the fastparquet package.
+2026-06-14 00:22:01,783 INFO Pipeline started: 2026-06-14T07:22:01.783406
+2026-06-14 00:22:01,783 INFO Config: {
+  "start_year": 2017,
+  "end_year": 2026,
+  "years": null,
+  "export_format": "json",
+  "min_minutes_played": 900,
+  "paths": {
+    "raw_data": "data/raw",
+    "processed_data": "data/processed",
+    "exports": "data/exports",
+    "logs": "logs"
+  }
+}
+2026-06-14 00:22:01,783 INFO Args: {'config': WindowsPath('C:/Users/ahmed/galactico11/config/pipeline.yaml'), 'start_year': None, 'end_year': None, 'years': None, 'skip_fetch': True, 'skip_export': False, 'export_format': None, 'min_minutes': None}
+2026-06-14 00:24:52,295 INFO Step Building player statistics
+2026-06-14 00:24:52,295 INFO Command: 'C:\Python313\python.exe' 'C:\Users\ahmed\galactico11\scripts\build_player_stats.py' --raw-data 'data\raw' --processed-data 'data\processed' --min-minutes 900
+2026-06-14 00:24:52,295 INFO Return code: 0
+2026-06-14 00:24:52,295 INFO Stdout: Loaded matches rows=672
+Total events loaded: 828107
+Available columns: ['50_50', 'ball_receipt_outcome', 'ball_recovery_recovery_failure', 'block_deflection', 'carry_end_location', 'clearance_aerial_won', 'clearance_body_part', 'clearance_head', 'clearance_left_foot', 'clearance_right_foot', 'counterpress', 'dribble_nutmeg', 'dribble_outcome', 'dribble_overrun', 'duel_outcome', 'duel_type', 'duration', 'foul_committed_advantage', 'foul_committed_card', 'foul_committed_type', 'foul_won_advantage', 'foul_won_defensive', 'goalkeeper_body_part', 'goalkeeper_end_location', 'goalkeeper_outcome', 'goalkeeper_position', 'goalkeeper_shot_saved_to_post', 'goalkeeper_technique', 'goalkeeper_type', 'id', 'index', 'injury_stoppage_in_chain', 'interception_outcome', 'location', 'match_id', 'minute', 'off_camera', 'out', 'pass_aerial_won', 'pass_angle', 'pass_assisted_shot_id', 'pass_body_part', 'pass_cross', 'pass_cut_back', 'pass_end_location', 'pass_goal_assist', 'pass_height', 'pass_inswinging', 'pass_length', 'pass_outcome', 'pass_outswinging', 'pass_recipient', 'pass_recipient_id', 'pass_shot_assist', 'pass_straight', 'pass_switch', 'pass_technique', 'pass_through_ball', 'pass_type', 'period', 'play_pattern', 'player', 'player_id', 'position', 'possession', 'possession_team', 'possession_team_id', 'related_events', 'second', 'shot_aerial_won', 'shot_body_part', 'shot_deflected', 'shot_end_location', 'shot_first_time', 'shot_freeze_frame', 'shot_key_pass_id', 'shot_one_on_one', 'shot_outcome', 'shot_saved_to_post', 'shot_statsbomb_xg', 'shot_technique', 'shot_type', 'substitution_outcome', 'substitution_outcome_id', 'substitution_replacement', 'substitution_replacement_id', 'tactics', 'team', 'team_id', 'timestamp', 'type', 'under_pressure', 'competition_name', 'season', 'bad_behaviour_card', 'block_offensive', 'clearance_other', 'foul_committed_offensive', 'foul_committed_penalty', 'foul_won_penalty', 'pass_no_touch', 'miscontrol_aerial_won', 'pass_deflected', 'pass_miscommunication', 'shot_open_goal', 'shot_redirect', 'dribble_no_touch', 'ball_recovery_offensive', 'goalkeeper_shot_saved_off_target', 'shot_saved_off_target', 'block_save_block', 'goalkeeper_punched_out', 'goalkeeper_lost_in_play', 'goalkeeper_penalty_saved_to_post', 'pass_backheel', 'shot_follows_dribble', 'goalkeeper_success_in_play', 'half_start_late_video_start']
+Non-null player_id rows: 821037
+Non-null player_name rows: 821037
+Non-null team_name rows: 828107
+Non-null player_position rows: 782803
+player_stats dataframe columns: ['player_id', 'name', 'nationality', 'club', 'league', 'season', 'era', 'positions', 'goals', 'npxG', 'shots', 'shots_on_target', 'xG_per_shot', 'big_chances', 'assists', 'xA', 'key_passes', 'through_balls', 'chances_created', 'progressive_passes', 'progressive_carries', 'carries_into_box', 'passes_into_box', 'touches', 'possession_won', 'possession_lost', 'tackles', 'interceptions', 'blocks', 'clearances', 'pressures', 'counterpressures', 'saves', 'save_percentage', 'goals_prevented', 'possession_value', 'ball_progression_value', 'attacking_value', 'defensive_value', 'minutes']
+Filtering by min_minutes=900 (current rows=2447)
+Wrote data\processed\player_stats.csv rows=0
+Wrote data\processed\player_stats.parquet rows=0
+Built player stats for 0 player-seasons.
+2026-06-14 00:24:52,295 INFO Stderr: 
+2026-06-14 00:24:53,700 INFO Step Calculating IoG
+2026-06-14 00:24:53,700 INFO Command: 'C:\Python313\python.exe' 'C:\Users\ahmed\galactico11\scripts\calculate_iog.py' --processed-data 'data\processed'
+2026-06-14 00:24:53,700 INFO Return code: 0
+2026-06-14 00:24:53,700 INFO Stdout: Reading player_stats parquet: data\processed\player_stats.parquet
+Loaded player_stats rows=0 columns=['player_id', 'name', 'nationality', 'club', 'league', 'season', 'era', 'positions', 'goals', 'npxG', 'shots', 'shots_on_target', 'xG_per_shot', 'big_chances', 'assists', 'xA', 'key_passes', 'through_balls', 'chances_created', 'progressive_passes', 'progressive_carries', 'carries_into_box', 'passes_into_box', 'touches', 'possession_won', 'possession_lost', 'tackles', 'interceptions', 'blocks', 'clearances', 'pressures', 'counterpressures', 'saves', 'save_percentage', 'goals_prevented', 'possession_value', 'ball_progression_value', 'attacking_value', 'defensive_value', 'minutes']
+Wrote data\processed\player_iog.csv rows=0
+Wrote data\processed\player_iog.parquet rows=0
+Calculated IoG for 0 player-seasons.
+2026-06-14 00:24:53,701 INFO Stderr: 
+2026-06-14 00:24:54,650 INFO Step Exporting players.json
+2026-06-14 00:24:54,650 INFO Command: 'C:\Python313\python.exe' 'C:\Users\ahmed\galactico11\scripts\export_players.py' --processed-data 'data\processed' --exports 'data\exports' --export-format json
+2026-06-14 00:24:54,650 INFO Return code: 0
+2026-06-14 00:24:54,650 INFO Stdout: Exported 0 players to data\exports\players.json.
+2026-06-14 00:24:54,650 INFO Stderr: 
+2026-06-14 00:24:54,713 INFO Step Syncing to App Source (pipeline)
+2026-06-14 00:24:54,713 INFO Command: 'C:\Python313\python.exe' -c 'import shutil; shutil.copy('"'"'data\exports/players.json'"'"', '"'"'C:\Users\ahmed\galactico11\src\data/players.json'"'"')'
+2026-06-14 00:24:54,713 INFO Return code: 1
+2026-06-14 00:24:54,713 INFO Stdout: 
+2026-06-14 00:24:54,713 INFO Stderr: <string>:1: SyntaxWarning: invalid escape sequence '\e'
+  File "<string>", line 1
+    import shutil; shutil.copy('data\exports/players.json', 'C:\Users\ahmed\galactico11\src\data/players.json')
+                                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+SyntaxError: (unicode error) 'unicodeescape' codec can't decode bytes in position 2-3: truncated \UXXXXXXXX escape
+2026-06-14 00:24:54,713 ERROR Step failed: Syncing to App Source (pipeline)
+2026-06-14 00:24:54,713 ERROR Command: 'C:\Python313\python.exe' -c 'import shutil; shutil.copy('"'"'data\exports/players.json'"'"', '"'"'C:\Users\ahmed\galactico11\src\data/players.json'"'"')'
+2026-06-14 00:24:54,713 ERROR Stderr: <string>:1: SyntaxWarning: invalid escape sequence '\e'
+  File "<string>", line 1
+    import shutil; shutil.copy('data\exports/players.json', 'C:\Users\ahmed\galactico11\src\data/players.json')
+                                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+SyntaxError: (unicode error) 'unicodeescape' codec can't decode bytes in position 2-3: truncated \UXXXXXXXX escape
+2026-06-14 00:25:16,732 INFO Pipeline started: 2026-06-14T07:25:16.732688
+2026-06-14 00:25:16,732 INFO Config: {
+  "start_year": 2017,
+  "end_year": 2026,
+  "years": null,
+  "export_format": "json",
+  "min_minutes_played": 0,
+  "paths": {
+    "raw_data": "data/raw",
+    "processed_data": "data/processed",
+    "exports": "data/exports",
+    "logs": "logs"
+  }
+}
+2026-06-14 00:25:16,733 INFO Args: {'config': WindowsPath('C:/Users/ahmed/galactico11/config/pipeline.yaml'), 'start_year': None, 'end_year': None, 'years': None, 'skip_fetch': True, 'skip_export': False, 'export_format': None, 'min_minutes': 0}
+2026-06-14 00:28:11,519 INFO Step Building player statistics
+2026-06-14 00:28:11,520 INFO Command: 'C:\Python313\python.exe' 'C:\Users\ahmed\galactico11\scripts\build_player_stats.py' --raw-data 'data\raw' --processed-data 'data\processed' --min-minutes 0
+2026-06-14 00:28:11,520 INFO Return code: 0
+2026-06-14 00:28:11,520 INFO Stdout: Loaded matches rows=672
+Total events loaded: 828107
+Available columns: ['50_50', 'ball_receipt_outcome', 'ball_recovery_recovery_failure', 'block_deflection', 'carry_end_location', 'clearance_aerial_won', 'clearance_body_part', 'clearance_head', 'clearance_left_foot', 'clearance_right_foot', 'counterpress', 'dribble_nutmeg', 'dribble_outcome', 'dribble_overrun', 'duel_outcome', 'duel_type', 'duration', 'foul_committed_advantage', 'foul_committed_card', 'foul_committed_type', 'foul_won_advantage', 'foul_won_defensive', 'goalkeeper_body_part', 'goalkeeper_end_location', 'goalkeeper_outcome', 'goalkeeper_position', 'goalkeeper_shot_saved_to_post', 'goalkeeper_technique', 'goalkeeper_type', 'id', 'index', 'injury_stoppage_in_chain', 'interception_outcome', 'location', 'match_id', 'minute', 'off_camera', 'out', 'pass_aerial_won', 'pass_angle', 'pass_assisted_shot_id', 'pass_body_part', 'pass_cross', 'pass_cut_back', 'pass_end_location', 'pass_goal_assist', 'pass_height', 'pass_inswinging', 'pass_length', 'pass_outcome', 'pass_outswinging', 'pass_recipient', 'pass_recipient_id', 'pass_shot_assist', 'pass_straight', 'pass_switch', 'pass_technique', 'pass_through_ball', 'pass_type', 'period', 'play_pattern', 'player', 'player_id', 'position', 'possession', 'possession_team', 'possession_team_id', 'related_events', 'second', 'shot_aerial_won', 'shot_body_part', 'shot_deflected', 'shot_end_location', 'shot_first_time', 'shot_freeze_frame', 'shot_key_pass_id', 'shot_one_on_one', 'shot_outcome', 'shot_saved_to_post', 'shot_statsbomb_xg', 'shot_technique', 'shot_type', 'substitution_outcome', 'substitution_outcome_id', 'substitution_replacement', 'substitution_replacement_id', 'tactics', 'team', 'team_id', 'timestamp', 'type', 'under_pressure', 'competition_name', 'season', 'bad_behaviour_card', 'block_offensive', 'clearance_other', 'foul_committed_offensive', 'foul_committed_penalty', 'foul_won_penalty', 'pass_no_touch', 'miscontrol_aerial_won', 'pass_deflected', 'pass_miscommunication', 'shot_open_goal', 'shot_redirect', 'dribble_no_touch', 'ball_recovery_offensive', 'goalkeeper_shot_saved_off_target', 'shot_saved_off_target', 'block_save_block', 'goalkeeper_punched_out', 'goalkeeper_lost_in_play', 'goalkeeper_penalty_saved_to_post', 'pass_backheel', 'shot_follows_dribble', 'goalkeeper_success_in_play', 'half_start_late_video_start']
+Non-null player_id rows: 821037
+Non-null player_name rows: 821037
+Non-null team_name rows: 828107
+Non-null player_position rows: 782803
+player_stats dataframe columns: ['player_id', 'name', 'nationality', 'club', 'league', 'season', 'era', 'positions', 'goals', 'npxG', 'shots', 'shots_on_target', 'xG_per_shot', 'big_chances', 'assists', 'xA', 'key_passes', 'through_balls', 'chances_created', 'progressive_passes', 'progressive_carries', 'carries_into_box', 'passes_into_box', 'touches', 'possession_won', 'possession_lost', 'tackles', 'interceptions', 'blocks', 'clearances', 'pressures', 'counterpressures', 'saves', 'save_percentage', 'goals_prevented', 'possession_value', 'ball_progression_value', 'attacking_value', 'defensive_value', 'minutes']
+Filtering by min_minutes=0 (current rows=2447)
+Wrote data\processed\player_stats.csv rows=2447
+Wrote data\processed\player_stats.parquet rows=2447
+Built player stats for 2447 player-seasons.
+2026-06-14 00:28:11,520 INFO Stderr: 
+2026-06-14 00:28:12,753 INFO Step Calculating IoG
+2026-06-14 00:28:12,753 INFO Command: 'C:\Python313\python.exe' 'C:\Users\ahmed\galactico11\scripts\calculate_iog.py' --processed-data 'data\processed'
+2026-06-14 00:28:12,753 INFO Return code: 1
+2026-06-14 00:28:12,754 INFO Stdout: Reading player_stats parquet: data\processed\player_stats.parquet
+Loaded player_stats rows=2447 columns=['player_id', 'name', 'nationality', 'club', 'league', 'season', 'era', 'positions', 'goals', 'npxG', 'shots', 'shots_on_target', 'xG_per_shot', 'big_chances', 'assists', 'xA', 'key_passes', 'through_balls', 'chances_created', 'progressive_passes', 'progressive_carries', 'carries_into_box', 'passes_into_box', 'touches', 'possession_won', 'possession_lost', 'tackles', 'interceptions', 'blocks', 'clearances', 'pressures', 'counterpressures', 'saves', 'save_percentage', 'goals_prevented', 'possession_value', 'ball_progression_value', 'attacking_value', 'defensive_value', 'minutes']
+2026-06-14 00:28:12,754 INFO Stderr: Traceback (most recent call last):
+  File "C:\Users\ahmed\galactico11\scripts\calculate_iog.py", line 162, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\ahmed\galactico11\scripts\calculate_iog.py", line 158, in main
+    calculate_iog(args.processed_data)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\galactico11\scripts\calculate_iog.py", line 67, in calculate_iog
+    df["position_group"] = df["positions"].apply(infer_position_group)
+                           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\pandas\core\series.py", line 5084, in apply
+    ).apply()
+      ~~~~~^^
+  File "C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\pandas\core\apply.py", line 1520, in apply
+    return self.apply_standard()
+           ~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\pandas\core\apply.py", line 1578, in apply_standard
+    mapped = obj._map_values(mapper=curried)
+  File "C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\pandas\core\base.py", line 1022, in _map_values
+    return algorithms.map_array(arr, mapper, na_action=na_action)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\pandas\core\algorithms.py", line 1715, in map_array
+    return lib.map_infer(values, mapper)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "pandas/_libs/lib.pyx", line 3071, in pandas._libs.lib.map_infer
+  File "C:\Users\ahmed\galactico11\scripts\calculate_iog.py", line 21, in infer_position_group
+    if not positions:
+           ^^^^^^^^^
+ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2026-06-14 00:28:12,754 ERROR Step failed: Calculating IoG
+2026-06-14 00:28:12,754 ERROR Command: 'C:\Python313\python.exe' 'C:\Users\ahmed\galactico11\scripts\calculate_iog.py' --processed-data 'data\processed'
+2026-06-14 00:28:12,754 ERROR Stderr: Traceback (most recent call last):
+  File "C:\Users\ahmed\galactico11\scripts\calculate_iog.py", line 162, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\ahmed\galactico11\scripts\calculate_iog.py", line 158, in main
+    calculate_iog(args.processed_data)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\galactico11\scripts\calculate_iog.py", line 67, in calculate_iog
+    df["position_group"] = df["positions"].apply(infer_position_group)
+                           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\pandas\core\series.py", line 5084, in apply
+    ).apply()
+      ~~~~~^^
+  File "C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\pandas\core\apply.py", line 1520, in apply
+    return self.apply_standard()
+           ~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\pandas\core\apply.py", line 1578, in apply_standard
+    mapped = obj._map_values(mapper=curried)
+  File "C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\pandas\core\base.py", line 1022, in _map_values
+    return algorithms.map_array(arr, mapper, na_action=na_action)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ahmed\AppData\Roaming\Python\Python313\site-packages\pandas\core\algorithms.py", line 1715, in map_array
+    return lib.map_infer(values, mapper)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "pandas/_libs/lib.pyx", line 3071, in pandas._libs.lib.map_infer
+  File "C:\Users\ahmed\galactico11\scripts\calculate_iog.py", line 21, in infer_position_group
+    if not positions:
+           ^^^^^^^^^
+ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2026-06-14 01:01:34,335 INFO Pipeline started: 2026-06-14T08:01:34.335705
+2026-06-14 01:01:34,336 INFO Config: {
+  "start_year": 2017,
+  "end_year": 2026,
+  "years": null,
+  "export_format": "json",
+  "min_minutes_played": 0,
+  "paths": {
+    "raw_data": "data/raw",
+    "processed_data": "data/processed",
+    "exports": "data/exports",
+    "logs": "logs"
+  }
+}
+2026-06-14 01:01:34,336 INFO Args: {'config': WindowsPath('C:/Users/ahmed/galactico11/config/pipeline.yaml'), 'start_year': None, 'end_year': None, 'years': None, 'skip_fetch': True, 'skip_export': False, 'export_format': None, 'min_minutes': 0}
+2026-06-14 01:04:36,479 INFO Step Building player statistics
+2026-06-14 01:04:36,479 INFO Command: 'C:\Python313\python.exe' 'C:\Users\ahmed\galactico11\scripts\build_player_stats.py' --raw-data 'data\raw' --processed-data 'data\processed' --min-minutes 0
+2026-06-14 01:04:36,479 INFO Return code: 0
+2026-06-14 01:04:36,480 INFO Stdout: Loaded matches rows=672
+Total events loaded: 828107
+Available columns: ['50_50', 'ball_receipt_outcome', 'ball_recovery_recovery_failure', 'block_deflection', 'carry_end_location', 'clearance_aerial_won', 'clearance_body_part', 'clearance_head', 'clearance_left_foot', 'clearance_right_foot', 'counterpress', 'dribble_nutmeg', 'dribble_outcome', 'dribble_overrun', 'duel_outcome', 'duel_type', 'duration', 'foul_committed_advantage', 'foul_committed_card', 'foul_committed_type', 'foul_won_advantage', 'foul_won_defensive', 'goalkeeper_body_part', 'goalkeeper_end_location', 'goalkeeper_outcome', 'goalkeeper_position', 'goalkeeper_shot_saved_to_post', 'goalkeeper_technique', 'goalkeeper_type', 'id', 'index', 'injury_stoppage_in_chain', 'interception_outcome', 'location', 'match_id', 'minute', 'off_camera', 'out', 'pass_aerial_won', 'pass_angle', 'pass_assisted_shot_id', 'pass_body_part', 'pass_cross', 'pass_cut_back', 'pass_end_location', 'pass_goal_assist', 'pass_height', 'pass_inswinging', 'pass_length', 'pass_outcome', 'pass_outswinging', 'pass_recipient', 'pass_recipient_id', 'pass_shot_assist', 'pass_straight', 'pass_switch', 'pass_technique', 'pass_through_ball', 'pass_type', 'period', 'play_pattern', 'player', 'player_id', 'position', 'possession', 'possession_team', 'possession_team_id', 'related_events', 'second', 'shot_aerial_won', 'shot_body_part', 'shot_deflected', 'shot_end_location', 'shot_first_time', 'shot_freeze_frame', 'shot_key_pass_id', 'shot_one_on_one', 'shot_outcome', 'shot_saved_to_post', 'shot_statsbomb_xg', 'shot_technique', 'shot_type', 'substitution_outcome', 'substitution_outcome_id', 'substitution_replacement', 'substitution_replacement_id', 'tactics', 'team', 'team_id', 'timestamp', 'type', 'under_pressure', 'competition_name', 'season', 'bad_behaviour_card', 'block_offensive', 'clearance_other', 'foul_committed_offensive', 'foul_committed_penalty', 'foul_won_penalty', 'pass_no_touch', 'miscontrol_aerial_won', 'pass_deflected', 'pass_miscommunication', 'shot_open_goal', 'shot_redirect', 'dribble_no_touch', 'ball_recovery_offensive', 'goalkeeper_shot_saved_off_target', 'shot_saved_off_target', 'block_save_block', 'goalkeeper_punched_out', 'goalkeeper_lost_in_play', 'goalkeeper_penalty_saved_to_post', 'pass_backheel', 'shot_follows_dribble', 'goalkeeper_success_in_play', 'half_start_late_video_start']
+Non-null player_id rows: 821037
+Non-null player_name rows: 821037
+Non-null team_name rows: 828107
+Non-null player_position rows: 782803
+player_stats dataframe columns: ['player_id', 'name', 'nationality', 'club', 'league', 'season', 'era', 'positions', 'goals', 'npxG', 'shots', 'shots_on_target', 'xG_per_shot', 'big_chances', 'assists', 'xA', 'key_passes', 'through_balls', 'chances_created', 'progressive_passes', 'progressive_carries', 'carries_into_box', 'passes_into_box', 'touches', 'possession_won', 'possession_lost', 'tackles', 'interceptions', 'blocks', 'clearances', 'pressures', 'counterpressures', 'saves', 'save_percentage', 'goals_prevented', 'possession_value', 'ball_progression_value', 'attacking_value', 'defensive_value', 'minutes']
+Filtering by min_minutes=0 (current rows=2447)
+Wrote data\processed\player_stats.csv rows=2447
+Wrote data\processed\player_stats.parquet rows=2447
+Built player stats for 2447 player-seasons.
+2026-06-14 01:04:36,480 INFO Stderr: 
+2026-06-14 01:04:38,124 INFO Step Calculating IoG
+2026-06-14 01:04:38,124 INFO Command: 'C:\Python313\python.exe' 'C:\Users\ahmed\galactico11\scripts\calculate_iog.py' --processed-data 'data\processed'
+2026-06-14 01:04:38,124 INFO Return code: 0
+2026-06-14 01:04:38,124 INFO Stdout: Reading player_stats parquet: data\processed\player_stats.parquet
+Loaded player_stats rows=2447 columns=['player_id', 'name', 'nationality', 'club', 'league', 'season', 'era', 'positions', 'goals', 'npxG', 'shots', 'shots_on_target', 'xG_per_shot', 'big_chances', 'assists', 'xA', 'key_passes', 'through_balls', 'chances_created', 'progressive_passes', 'progressive_carries', 'carries_into_box', 'passes_into_box', 'touches', 'possession_won', 'possession_lost', 'tackles', 'interceptions', 'blocks', 'clearances', 'pressures', 'counterpressures', 'saves', 'save_percentage', 'goals_prevented', 'possession_value', 'ball_progression_value', 'attacking_value', 'defensive_value', 'minutes']
+Wrote data\processed\player_iog.csv rows=2447
+Wrote data\processed\player_iog.parquet rows=2447
+Calculated IoG for 2447 player-seasons.
+2026-06-14 01:04:38,124 INFO Stderr: 
+2026-06-14 01:04:39,916 INFO Step Exporting players.json
+2026-06-14 01:04:39,916 INFO Command: 'C:\Python313\python.exe' 'C:\Users\ahmed\galactico11\scripts\export_players.py' --processed-data 'data\processed' --exports 'data\exports' --export-format json
+2026-06-14 01:04:39,916 INFO Return code: 0
+2026-06-14 01:04:39,916 INFO Stdout: Exported 2447 players to data\exports\players.json.
+2026-06-14 01:04:39,916 INFO Stderr: 
+2026-06-14 01:04:40,000 INFO Step Syncing to App Source (pipeline)
+2026-06-14 01:04:40,000 INFO Command: 'C:\Python313\python.exe' -c 'import shutil; shutil.copy('"'"'data\\exports\\players.json'"'"', '"'"'C:\\Users\\ahmed\\galactico11\\src\\data\\players.json'"'"')'
+2026-06-14 01:04:40,000 INFO Return code: 0
+2026-06-14 01:04:40,000 INFO Stdout: 
+2026-06-14 01:04:40,000 INFO Stderr: 
+2026-06-14 01:04:40,230 INFO Step Post-export verification (counts/top players)
+2026-06-14 01:04:40,230 INFO Command: 'C:\Python313\python.exe' -c 'import json, pathlib; p=pathlib.Path('"'"'src/data/players.json'"'"');
+d=json.loads(p.read_text(encoding='"'"'utf-8'"'"'));
+print('"'"'POST: total players'"'"',len(d));
+d_sorted=sorted(d, key=lambda x: float(x.get('"'"'iog'"'"',0) or 0), reverse=True)[:5];
+print('"'"'POST: first 5 players by IoG'"'"');
+[print('"'"' -'"'"',x.get('"'"'name'"'"'),x.get('"'"'club'"'"'),x.get('"'"'era'"'"'),x.get('"'"'league'"'"'), '"'"'iog='"'"',x.get('"'"'iog'"'"')) for x in d_sorted];
+from collections import Counter;
+for f in ['"'"'league'"'"','"'"'club'"'"','"'"'era'"'"']:
+ c=Counter([x.get(f) for x in d]);
+ print('"'"'POST count_by_'"'"'+f, len(c));
+ print(c.most_common(10));
+'
+2026-06-14 01:04:40,231 INFO Return code: 0
+2026-06-14 01:04:40,231 INFO Stdout: POST: total players 2447
+POST: first 5 players by IoG
+ - Lionel Andrés Messi Cuccittini Argentina 2020s FIFA World Cup iog= 75.4
+ - Kieran Trippier England 2010s FIFA World Cup iog= 64.8
+ - Teboho Mokoena South Africa 2020s African Cup of Nations iog= 64.1
+ - Antoine Griezmann France 2010s FIFA World Cup iog= 63.6
+ - Facundo Farías Inter Miami 2020s Major League Soccer iog= 60.7
+POST count_by_league 5
+[('FIFA World Cup', 1287), ('African Cup of Nations', 512), ('Copa America', 339), ('NWSL', 191), ('Major League Soccer', 118)]
+POST count_by_club 78
+[('Argentina', 68), ('Morocco', 66), ('Brazil', 64), ('Tunisia', 63), ('Costa Rica', 62), ('Senegal', 60), ('Mexico', 60), ('Uruguay', 59), ('France', 47), ('Colombia', 44)]
+POST count_by_era 2
+[('2020s', 1650), ('2010s', 797)]
+2026-06-14 01:04:40,231 INFO Stderr: 
+2026-06-14 01:04:40,231 INFO Pipeline completed successfully
+2026-06-14 01:04:40,231 INFO Total duration: 185.9s
+2026-06-14 01:04:40,231 INFO Pipeline ended: 2026-06-14T08:04:40.231522

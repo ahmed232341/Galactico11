@@ -1,0 +1,7 @@
+# GALACTICO11 CLUB MODE REAL-PLAYER DATABASE
+# Placeholder/generated position-number players have been removed.
+# Add real footballer rows only. Do not generate fake players to fill squads.
+
+[PLAYER_ROWS_NORMALIZED_CSV]
+id,name,club,league,competition,era,country,position,roleBucket,minutes,goals,assists,cleanSheets,tackles,interceptions,keyPasses,shots,shotsOnTarget,savePct,iog,dataSource,estimated,modeType
+[/PLAYER_ROWS_NORMALIZED_CSV]
