@@ -393,6 +393,18 @@
     ]
   };
 
+  const formationIdentities: Record<string, string> = {
+    "4-3-3": "Balanced width",
+    "4-4-2": "Classic two-striker shape",
+    "4-4-1-1": "Compact support striker",
+    "4-2-3-1": "Modern CAM system",
+    "4-1-4-1": "Midfield control",
+    "3-5-2": "Wingback midfield overload",
+    "3-4-3": "Attack-first pressure",
+    "3-4-2-1": "Narrow creator overload",
+    "5-4-1": "Defensive fortress"
+  };
+
   const clubColors: Record<string, string> = {
     Chelsea: "#2563eb",
     Arsenal: "#dc2626",
@@ -2534,6 +2546,7 @@
         </div>
         <div class="hero-depth" aria-hidden="true"></div>
         <div class="hero-content">
+          <img class="mobile-menu-logo" src="/logo-white.png" alt="Galactico11" />
           <h1>Galactico11</h1>
           <p class="hero-copy">Build football's ultimate eleven.</p>
           <p class="hero-tagline">Every pick has a consequence.</p>
@@ -2594,7 +2607,7 @@
   {#if screen === "mode"}
     <section class="panel mode-screen">
       <button class="back-link" on:click={backToMenu}>Back</button>
-      <h1>Choose your stage.</h1>
+      <h1>Choose your stage</h1>
 
       <div class="mode-grid">
         <button
@@ -2642,7 +2655,7 @@
   {#if screen === "clubFormat"}
     <section class="panel mode-screen">
       <button class="back-link" on:click={backToMode}>Back</button>
-      <h1>Choose Club Format.</h1>
+      <h1>Choose Club Format</h1>
 
       <div class="mode-grid">
         <div class="mode-option">
@@ -2679,6 +2692,7 @@
           <button on:click={() => chooseFormation(item)}>
             <span>Formation</span>
             <strong>{item}</strong>
+            <small>{formationIdentities[item]}</small>
           </button>
         {/each}
       </div>
@@ -2691,7 +2705,7 @@
         <div class="draft-head">
           <div>
             <p class="kicker">{isGoldenRound ? goldenRoundTitle : currentUniverseTitle}</p>
-            <h1>{isGoldenRound ? "Full Player Pool" : "Choose one player."}</h1>
+            <h1>{isGoldenRound ? "Full Player Pool" : "Choose one player"}</h1>
           </div>
 
           <div class="counter">{picked.length}/11</div>
@@ -2817,10 +2831,8 @@
                 <div class="player-main">
                   <div>
                     {#if isMysteryCardHidden(player)}
-                      <strong class="mystery-unknown">Unknown Player</strong>
-                      <small>Identity Hidden</small>
-                      <small>Selected by Phoebe</small>
-                      <div class="mystery-question" aria-hidden="true">?</div>
+                      <strong class="mystery-unknown">Mystery Pick</strong>
+                      <small>Eligible Slot: {eligibleSlotLabels(player)[0] ?? "?"}</small>
                     {:else}
                       <strong>{player.name}</strong>
                       <small>
@@ -2886,7 +2898,7 @@
             <div class="chemistry-pill">Chemistry <strong>{chemistry}%</strong></div>
             {#if selectedPlayer}
               <div class="selection-pill">
-                {selectedPlayer.name} selected
+                {isMysteryCardHidden(selectedPlayer) ? "Mystery Pick" : selectedPlayer.name} selected
               </div>
             {:else}
               <div class="selection-pill muted-pill">
@@ -2901,6 +2913,40 @@
           <span><b>Team Balance</b> {finalBalanceProfile.status}</span>
           <span><b>Chemistry</b> {chemistry}%</span>
           <span><b>Selected</b> {picked.length}/11</span>
+        </div>
+
+        <div class="mobile-squad-tracker" aria-label={`Selected ${picked.length} of 11 players`}>
+          <div class="mobile-squad-head">
+            <strong>Selected {picked.length}/11</strong>
+            <span>{formation}</span>
+          </div>
+
+          <div class="mobile-squad-slots">
+            {#each pitchSlots as slot}
+              <button
+                class:filled={slot.state === "filled"}
+                class:eligible={slot.state === "eligible"}
+                class:locked={slot.state === "locked"}
+                class:selected={selectedSlotId === slot.id}
+                disabled={slot.state === "filled" || slot.state === "locked"}
+                on:click={() => clickSlot(slot)}
+                aria-label={`${slot.label} squad slot`}
+              >
+                {#if slot.player}
+                  {#if isMysteryIdentityHidden(slot.player)}
+                    <strong>???</strong>
+                    <small>{slot.label}</small>
+                  {:else}
+                    <strong>{initials(slot.player.name)}</strong>
+                    <small>{slot.player.adjustedIog}</small>
+                  {/if}
+                {:else}
+                  <strong>{slot.label}</strong>
+                  <small>Empty</small>
+                {/if}
+              </button>
+            {/each}
+          </div>
         </div>
 
         <div class="pitch">
@@ -2937,8 +2983,14 @@
         {#if selectedPlayer}
           <div class="assign-panel">
             <div>
-              <strong>{selectedPlayer.name}</strong>
-              <span>{getPositions(selectedPlayer).join(" · ")}</span>
+              <strong>{isMysteryCardHidden(selectedPlayer) ? "Mystery Pick" : selectedPlayer.name}</strong>
+              <span>
+                {#if isMysteryCardHidden(selectedPlayer)}
+                  Eligible Slot: {eligibleSlotLabels(selectedPlayer)[0] ?? "?"}
+                {:else}
+                  {getPositions(selectedPlayer).join(" · ")}
+                {/if}
+              </span>
               <small>
                 Choose a highlighted compatible slot.
               </small>
@@ -3150,7 +3202,7 @@
         <div>
           <img class="result-logo" src="/logo-white.png" alt="Galactico11" />
           <p class="kicker">Final XI Reveal • {analysisTotalSteps} / {analysisTotalSteps}</p>
-          <h1>Final team reveal.</h1>
+          <h1>Final team reveal</h1>
           <p class="muted">Your XI is complete.</p>
         </div>
 
@@ -3545,6 +3597,10 @@
     z-index: 4;
     max-width: 620px;
     animation: fadeUp 0.6s ease both;
+  }
+
+  .mobile-menu-logo {
+    display: none;
   }
 
   .hero-content h1 {
@@ -4005,6 +4061,10 @@
     font-size: 34px;
   }
 
+  .formation-grid small {
+    display: none;
+  }
+
   .draft-grid {
     max-width: 1420px;
     margin: 0 auto;
@@ -4074,6 +4134,10 @@
   }
 
   .mobile-draft-metrics {
+    display: none;
+  }
+
+  .mobile-squad-tracker {
     display: none;
   }
 
@@ -5942,27 +6006,36 @@
     }
 
     .hero-shell {
-      min-height: clamp(500px, 84svh, 590px);
+      min-height: min(560px, calc(100svh - 96px));
       border-radius: 20px;
-      padding: 42px 18px 24px;
+      padding: 34px 18px;
       align-content: center;
+      justify-items: center;
+      text-align: center;
       gap: 20px;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(201, 166, 70, 0.12), transparent 34%),
+        linear-gradient(180deg, #11141d, #090a0f);
     }
 
     .hero-shell::after {
-      background:
-        radial-gradient(circle at 72% 26%, rgba(255, 255, 255, 0.05), transparent 25%),
-        radial-gradient(circle at 66% 25%, transparent 0, rgba(0, 0, 0, 0.16) 48%, rgba(0, 0, 0, 0.7) 100%),
-        linear-gradient(90deg, rgba(9, 10, 15, 0.98) 0%, rgba(9, 10, 15, 0.84) 55%, rgba(9, 10, 15, 0.48) 100%);
+      display: none;
     }
 
-    .hero-player img {
-      object-position: center top;
-      opacity: 0.68;
+    .hero-player,
+    .hero-depth {
+      display: none;
     }
 
     .hero-content {
       max-width: 100%;
+    }
+
+    .mobile-menu-logo {
+      display: block;
+      height: 68px;
+      width: auto;
+      margin: 0 auto 14px;
     }
 
     .hero-content h1 {
@@ -5972,14 +6045,16 @@
     }
 
     .hero-copy {
+      margin-inline: auto;
       max-width: 320px;
       font-size: clamp(22px, 7vw, 28px);
       line-height: 1.12;
     }
 
     .hero-tagline {
+      margin-inline: auto;
       max-width: 300px;
-      margin: 12px 0 22px;
+      margin: 12px auto 22px;
       font-size: 14px;
       line-height: 1.45;
     }
@@ -5987,6 +6062,7 @@
     .menu-actions {
       display: grid;
       max-width: 310px;
+      margin-inline: auto;
       grid-template-columns: 1fr;
       gap: 10px;
     }
@@ -5999,31 +6075,7 @@
     }
 
     .hero-side-panels {
-      position: relative;
-      right: auto;
-      bottom: auto;
-      z-index: 4;
-      width: min(100%, 310px);
-      justify-items: start;
-    }
-
-    .home-phoebe {
       display: none;
-    }
-
-    .featured-player-card {
-      max-width: 270px;
-      padding: 12px;
-      border-radius: 8px;
-    }
-
-    .featured-player-card > strong {
-      font-size: 18px;
-    }
-
-    .featured-player-card dl {
-      margin-top: 12px;
-      gap: 6px;
     }
 
     .about-card {
@@ -6075,17 +6127,15 @@
       min-height: 0;
       padding: 8px;
       border-radius: 14px;
+      position: relative;
     }
 
     .mode-card-image {
-      width: min(58%, 160px);
-      height: 118px;
-      margin-bottom: 12px;
-      border-radius: 12px;
+      display: none;
     }
 
     .mode-card-content {
-      padding: 0 12px 14px;
+      padding: 6px 12px 52px;
     }
 
     .mode-grid .mode-card .mode-card-content strong {
@@ -6101,6 +6151,22 @@
     .mode-grid .mode-card .mode-card-content .mode-badge {
       margin-top: 8px;
       font-size: 9px;
+    }
+
+    .mode-grid .mode-card::after {
+      content: "Select";
+      position: absolute;
+      left: 20px;
+      right: 20px;
+      bottom: 14px;
+      min-height: 34px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: #c9a646;
+      color: #090a0f;
+      font-size: 12px;
+      font-weight: 950;
     }
 
     .formation-grid {
@@ -6121,6 +6187,15 @@
     .formation-grid strong {
       margin-top: 6px;
       font-size: clamp(22px, 7vw, 30px);
+    }
+
+    .formation-grid small {
+      display: block;
+      margin-top: 5px;
+      color: #a7adc2;
+      font-size: 11px;
+      font-weight: 750;
+      line-height: 1.25;
     }
 
     .draft-grid {
@@ -6306,6 +6381,86 @@
       height: clamp(390px, 116vw, 610px);
       margin-top: 16px;
       border-radius: 16px;
+    }
+
+    .draft-grid .pitch {
+      display: none;
+    }
+
+    .mobile-squad-tracker {
+      margin-top: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .mobile-squad-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      color: #c6cad4;
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+    .mobile-squad-head span {
+      color: #c9a646;
+    }
+
+    .mobile-squad-slots {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .mobile-squad-slots button {
+      aspect-ratio: 1;
+      min-height: 0;
+      border: 1px solid #2d3342;
+      border-radius: 50%;
+      background: #151823;
+      color: #f4f4f5;
+      display: grid;
+      place-items: center;
+      align-content: center;
+      gap: 2px;
+      padding: 6px;
+      cursor: not-allowed;
+      transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+    }
+
+    .mobile-squad-slots button.eligible {
+      cursor: pointer;
+      border-color: #c9a646;
+      box-shadow: 0 0 0 3px rgba(201, 166, 70, 0.17);
+      transform: translateY(-1px);
+    }
+
+    .mobile-squad-slots button.selected {
+      outline: 2px solid white;
+      outline-offset: 2px;
+    }
+
+    .mobile-squad-slots button.filled {
+      border-color: #c9a646;
+      background: rgba(201, 166, 70, 0.14);
+      cursor: default;
+    }
+
+    .mobile-squad-slots button.locked {
+      opacity: 0.35;
+    }
+
+    .mobile-squad-slots strong {
+      font-size: clamp(12px, 3.8vw, 16px);
+      line-height: 1;
+    }
+
+    .mobile-squad-slots small {
+      color: #8f95a5;
+      font-size: 9px;
+      font-weight: 850;
+      line-height: 1;
     }
 
     .pitch::after,
