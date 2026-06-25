@@ -2880,7 +2880,7 @@
 
       <div class="panel right">
         <div class="board-head">
-          <h2>Formation board</h2>
+          <h2>Formation Board</h2>
 
           <div class="board-status">
             <div class="chemistry-pill">Chemistry <strong>{chemistry}%</strong></div>
@@ -2894,6 +2894,13 @@
               </div>
             {/if}
           </div>
+        </div>
+
+        <div class="mobile-draft-metrics" aria-label="Compact draft metrics">
+          <span><b>Libra Score</b> {libraScore ?? "-"}</span>
+          <span><b>Team Balance</b> {finalBalanceProfile.status}</span>
+          <span><b>Chemistry</b> {chemistry}%</span>
+          <span><b>Selected</b> {picked.length}/11</span>
         </div>
 
         <div class="pitch">
@@ -2923,7 +2930,9 @@
           {/each}
         </div>
 
-        <TeamBalanceHexagon players={picked} {formation} {chemistry} {positionFit} />
+        <div class="live-analysis-visual">
+          <TeamBalanceHexagon players={picked} {formation} {chemistry} {positionFit} />
+        </div>
 
         {#if selectedPlayer}
           <div class="assign-panel">
@@ -4004,12 +4013,28 @@
     gap: 24px;
   }
 
+  .panel.right {
+    display: flex;
+    flex-direction: column;
+  }
+
   .draft-head,
   .board-head,
   .result-head {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
+  }
+
+  .board-head {
+    align-items: center;
+    gap: 18px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid #262a38;
+  }
+
+  .board-head h2 {
+    line-height: 1;
   }
 
   .counter,
@@ -4029,6 +4054,7 @@
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-end;
+    align-items: center;
     gap: 8px;
   }
 
@@ -4045,6 +4071,10 @@
   .chemistry-pill strong {
     margin-left: 5px;
     color: #c9a646;
+  }
+
+  .mobile-draft-metrics {
+    display: none;
   }
 
   .universe-grid {
@@ -4420,6 +4450,13 @@
     border: 1px solid #25442f;
   }
 
+  .pitch {
+    width: min(100%, 560px);
+    height: 650px;
+    align-self: center;
+    margin-top: 22px;
+  }
+
   .pitch::after,
   .final-pitch::after {
     content: "";
@@ -4447,6 +4484,9 @@
 
   .pitch button {
     cursor: not-allowed;
+    width: 88px;
+    min-height: 74px;
+    border-radius: 18px;
   }
 
   .pitch button.eligible {
@@ -5816,6 +5856,959 @@
     .phoebe-mascot {
       width: 96px;
       height: 140px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    :global(html),
+    :global(body) {
+      overflow-x: hidden;
+    }
+
+    .page {
+      width: 100%;
+      overflow-x: hidden;
+      padding: 12px;
+    }
+
+    .panel {
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .site-footer {
+      margin-top: 14px;
+      padding-inline: 8px;
+      font-size: 10px;
+    }
+
+    .nav {
+      min-height: 56px;
+      margin-bottom: 14px;
+      border-radius: 16px;
+      padding: 7px 10px;
+      gap: 10px;
+    }
+
+    .nav-brand {
+      gap: 8px;
+    }
+
+    .nav-brand > span {
+      display: none;
+    }
+
+    .nav img {
+      height: 46px;
+    }
+
+    .iog-help-label {
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .header-iog-help > span:not(.iog-help-label) {
+      right: -4px;
+      width: min(330px, calc(100vw - 24px));
+      padding: 14px;
+      font-size: 13px;
+    }
+
+    h1 {
+      font-size: clamp(28px, 8.4vw, 40px);
+      line-height: 1.02;
+      letter-spacing: -0.035em;
+    }
+
+    h2 {
+      font-size: clamp(20px, 6vw, 25px);
+    }
+
+    .kicker {
+      font-size: 10px;
+      letter-spacing: 0.16em;
+    }
+
+    .primary,
+    .secondary,
+    .back-link {
+      min-height: 42px;
+      padding: 11px 16px;
+      font-size: 14px;
+    }
+
+    .main-menu {
+      width: 100%;
+    }
+
+    .hero-shell {
+      min-height: clamp(500px, 84svh, 590px);
+      border-radius: 20px;
+      padding: 42px 18px 24px;
+      align-content: center;
+      gap: 20px;
+    }
+
+    .hero-shell::after {
+      background:
+        radial-gradient(circle at 72% 26%, rgba(255, 255, 255, 0.05), transparent 25%),
+        radial-gradient(circle at 66% 25%, transparent 0, rgba(0, 0, 0, 0.16) 48%, rgba(0, 0, 0, 0.7) 100%),
+        linear-gradient(90deg, rgba(9, 10, 15, 0.98) 0%, rgba(9, 10, 15, 0.84) 55%, rgba(9, 10, 15, 0.48) 100%);
+    }
+
+    .hero-player img {
+      object-position: center top;
+      opacity: 0.68;
+    }
+
+    .hero-content {
+      max-width: 100%;
+    }
+
+    .hero-content h1 {
+      margin-bottom: 12px;
+      font-size: clamp(40px, 13vw, 58px);
+      line-height: 0.95;
+    }
+
+    .hero-copy {
+      max-width: 320px;
+      font-size: clamp(22px, 7vw, 28px);
+      line-height: 1.12;
+    }
+
+    .hero-tagline {
+      max-width: 300px;
+      margin: 12px 0 22px;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .menu-actions {
+      display: grid;
+      max-width: 310px;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .menu-actions .primary,
+    .menu-actions .secondary {
+      width: 100%;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .hero-side-panels {
+      position: relative;
+      right: auto;
+      bottom: auto;
+      z-index: 4;
+      width: min(100%, 310px);
+      justify-items: start;
+    }
+
+    .home-phoebe {
+      display: none;
+    }
+
+    .featured-player-card {
+      max-width: 270px;
+      padding: 12px;
+      border-radius: 8px;
+    }
+
+    .featured-player-card > strong {
+      font-size: 18px;
+    }
+
+    .featured-player-card dl {
+      margin-top: 12px;
+      gap: 6px;
+    }
+
+    .about-card {
+      margin-top: 18px;
+      border-radius: 18px;
+      padding: 22px 18px;
+    }
+
+    .entry-word {
+      font-size: clamp(34px, 11vw, 44px);
+    }
+
+    .entry-kind {
+      margin: 10px 0 16px;
+      font-size: 15px;
+    }
+
+    .entry-prose {
+      gap: 12px;
+    }
+
+    .entry-prose p {
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .mode-screen,
+    .formation-screen {
+      padding: 20px 14px;
+    }
+
+    .mode-screen h1,
+    .formation-screen h1 {
+      margin-top: 8px;
+      font-size: clamp(30px, 9vw, 40px);
+    }
+
+    .mode-grid,
+    .formation-grid {
+      margin-top: 22px;
+      gap: 12px;
+    }
+
+    .mode-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .mode-grid .mode-card {
+      min-height: 0;
+      padding: 8px;
+      border-radius: 14px;
+    }
+
+    .mode-card-image {
+      width: min(58%, 160px);
+      height: 118px;
+      margin-bottom: 12px;
+      border-radius: 12px;
+    }
+
+    .mode-card-content {
+      padding: 0 12px 14px;
+    }
+
+    .mode-grid .mode-card .mode-card-content strong {
+      font-size: 24px;
+    }
+
+    .mode-grid .mode-card .mode-card-content span {
+      margin-top: 10px;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .mode-grid .mode-card .mode-card-content .mode-badge {
+      margin-top: 8px;
+      font-size: 9px;
+    }
+
+    .formation-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .formation-grid button {
+      min-height: 88px;
+      border-radius: 14px;
+      padding: 12px 8px;
+    }
+
+    .formation-grid span {
+      font-size: 9px;
+      letter-spacing: 0.12em;
+    }
+
+    .formation-grid strong {
+      margin-top: 6px;
+      font-size: clamp(22px, 7vw, 30px);
+    }
+
+    .draft-grid {
+      width: 100%;
+      gap: 14px;
+    }
+
+    .draft-head,
+    .board-head,
+    .result-head {
+      gap: 12px;
+    }
+
+    .draft-head h1 {
+      font-size: clamp(27px, 8vw, 36px);
+    }
+
+    .counter,
+    .selection-pill {
+      padding: 8px 12px;
+      font-size: 12px;
+    }
+
+    .board-head {
+      display: grid;
+      grid-template-columns: 1fr;
+      padding-bottom: 12px;
+    }
+
+    .draft-grid .board-status {
+      display: none;
+    }
+
+    .mobile-draft-metrics {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 7px;
+    }
+
+    .mobile-draft-metrics span {
+      min-width: 0;
+      border: 1px solid rgba(201, 166, 70, 0.24);
+      border-radius: 999px;
+      background: rgba(201, 166, 70, 0.07);
+      padding: 8px 10px;
+      color: #f1f2f5;
+      font-size: 11px;
+      font-weight: 850;
+      line-height: 1.2;
+      overflow-wrap: anywhere;
+    }
+
+    .mobile-draft-metrics b {
+      margin-right: 4px;
+      color: #8f95a5;
+      font-weight: 800;
+    }
+
+    .live-analysis-visual {
+      display: none;
+    }
+
+    .chemistry-pill {
+      padding: 8px 10px;
+      font-size: 11px;
+    }
+
+    .universe-grid {
+      margin: 18px 0;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .universe-grid div {
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .universe-grid span {
+      font-size: 9px;
+      letter-spacing: 0.12em;
+    }
+
+    .universe-grid strong {
+      margin-top: 6px;
+      font-size: 15px;
+      line-height: 1.2;
+    }
+
+    .controls,
+    .pool-tools {
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+
+    .status,
+    .notice {
+      margin-top: 14px;
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    .search,
+    .pool-tools select {
+      min-height: 42px;
+      border-radius: 12px;
+      padding: 11px 12px;
+      font-size: 14px;
+    }
+
+    .spots {
+      margin: 12px 0;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .player-list {
+      max-height: 420px;
+      gap: 9px;
+      padding-right: 0;
+    }
+
+    .player-card {
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .draft-label {
+      margin-bottom: 8px;
+      padding: 3px 7px;
+      font-size: 8px;
+      letter-spacing: 0.08em;
+    }
+
+    .player-main strong {
+      font-size: 17px;
+      line-height: 1.18;
+    }
+
+    .player-main small,
+    .slot-info span {
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .iog-line {
+      margin-top: 8px;
+      gap: 8px;
+    }
+
+    .iog-line b {
+      font-size: 22px;
+    }
+
+    .real-stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .real-stats b {
+      font-size: 14px;
+    }
+
+    .mystery-question {
+      width: 46px;
+      height: 46px;
+      margin-top: 12px;
+      font-size: 24px;
+    }
+
+    .progress {
+      margin-top: 16px;
+      gap: 5px;
+    }
+
+    .progress div {
+      height: 5px;
+    }
+
+    .pitch,
+    .final-pitch {
+      height: clamp(390px, 116vw, 610px);
+      margin-top: 16px;
+      border-radius: 16px;
+    }
+
+    .pitch::after,
+    .final-pitch::after {
+      inset: 12px;
+      border-width: 1px;
+    }
+
+    .pitch button,
+    .final-pitch > div {
+      width: clamp(52px, 14.5vw, 76px);
+      min-height: clamp(46px, 12vw, 62px);
+      border-radius: 14px;
+      border-width: 1px;
+    }
+
+    .pitch button.eligible {
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 24%, transparent);
+    }
+
+    .pitch button.selected {
+      outline-width: 3px;
+    }
+
+    .pitch button span,
+    .final-pitch span {
+      font-size: clamp(15px, 5vw, 21px);
+    }
+
+    .mystery-pitch-label {
+      font-size: 9px !important;
+    }
+
+    .pitch button strong,
+    .final-pitch small {
+      padding: 3px 6px;
+      font-size: 9px;
+      line-height: 1.1;
+    }
+
+    .assign-panel {
+      margin-top: 12px;
+      border-radius: 14px;
+      padding: 13px;
+    }
+
+    .assign-panel strong {
+      font-size: 17px;
+    }
+
+    .assign-panel .primary {
+      width: 100%;
+    }
+
+    .analysis-stage {
+      min-height: calc(100svh - 24px);
+      border-radius: 18px;
+      padding: 14px;
+    }
+
+    .analysis-header img {
+      height: 34px;
+    }
+
+    .analysis-skip {
+      padding: 8px 11px;
+      font-size: 12px;
+    }
+
+    .analysis-progress {
+      margin-top: 14px;
+    }
+
+    .analysis-content {
+      padding: 20px 0 18px;
+      gap: 14px;
+    }
+
+    .analysis-kicker {
+      margin-bottom: 10px;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+    }
+
+    .analysis-copy h1,
+    .mystery-report .analysis-copy h1 {
+      font-size: clamp(25px, 8vw, 36px);
+      line-height: 1.1;
+    }
+
+    .analysis-body,
+    .mystery-report .analysis-body {
+      margin-top: 12px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .mystery-reveal-player {
+      padding: 13px;
+    }
+
+    .mystery-reveal-player > strong {
+      font-size: 22px;
+    }
+
+    .mystery-reveal-player b {
+      padding: 8px;
+      font-size: 12px;
+    }
+
+    .mystery-impact-summary strong {
+      padding: 8px;
+      font-size: 15px;
+    }
+
+    .analysis-metric {
+      margin-top: 16px;
+      padding-top: 14px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .analysis-metric strong {
+      max-width: 100%;
+      text-align: left;
+      font-size: 22px;
+    }
+
+    .analysis-phoebe {
+      width: 100%;
+      max-width: 300px;
+      grid-template-columns: 58px 1fr;
+      gap: 10px;
+      padding: 8px;
+    }
+
+    .analysis-phoebe img {
+      width: 58px;
+      height: 72px;
+    }
+
+    .analysis-phoebe blockquote {
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .analysis-footer {
+      padding-top: 14px;
+    }
+
+    .analysis-continue {
+      min-width: 0;
+      padding: 10px 16px;
+      font-size: 13px;
+    }
+
+    .simulation-stage {
+      min-height: calc(100svh - 24px);
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .simulation-header img {
+      height: 34px;
+    }
+
+    .simulation-header > span,
+    .simulation-footer span {
+      font-size: 9px;
+      letter-spacing: 0.1em;
+    }
+
+    .simulation-content {
+      padding: 26px 0;
+      gap: 16px;
+    }
+
+    .simulation-copy h1 {
+      font-size: clamp(28px, 9vw, 42px);
+    }
+
+    .simulation-record {
+      margin-top: 12px;
+      font-size: clamp(48px, 17vw, 78px);
+    }
+
+    .simulation-progress {
+      margin-top: 18px;
+    }
+
+    .simulation-phoebe {
+      grid-template-columns: 74px 1fr;
+      border-radius: 14px;
+    }
+
+    .simulation-phoebe img {
+      height: 96px;
+    }
+
+    .simulation-phoebe div {
+      padding: 12px;
+    }
+
+    .simulation-phoebe strong {
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .simulation-footer {
+      gap: 12px;
+      padding-top: 14px;
+    }
+
+    .record-reveal-content {
+      padding: 26px 0;
+    }
+
+    .record-reveal-value {
+      font-size: clamp(54px, 20vw, 92px);
+    }
+
+    .record-reveal-content > span {
+      margin-top: 10px;
+      font-size: 15px;
+    }
+
+    .record-phoebe {
+      margin-top: 22px;
+      grid-template-columns: 64px 1fr;
+    }
+
+    .record-phoebe img {
+      width: 64px;
+      height: 82px;
+    }
+
+    .record-phoebe div {
+      padding: 12px;
+    }
+
+    .record-phoebe strong {
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .libra-reveal-content {
+      gap: 18px;
+      padding: 26px 0;
+    }
+
+    .libra-reveal-value {
+      font-size: clamp(66px, 23vw, 108px);
+    }
+
+    .libra-reveal-content h1 {
+      margin-top: 12px;
+      font-size: clamp(27px, 8vw, 38px);
+    }
+
+    .libra-reveal-content p {
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .libra-breakdown div {
+      padding: 10px 0;
+    }
+
+    .libra-breakdown dd {
+      font-size: 18px;
+    }
+
+    .result-head {
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+
+    .result-logo {
+      height: 42px;
+      margin-bottom: 10px;
+    }
+
+    .result-grid {
+      margin-top: 18px;
+      gap: 14px;
+    }
+
+    .summary {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .summary div {
+      min-width: 0;
+      border-radius: 12px;
+      padding: 11px;
+    }
+
+    .summary span {
+      font-size: 9px;
+      letter-spacing: 0.1em;
+    }
+
+    .summary strong {
+      margin-top: 6px;
+      font-size: clamp(15px, 4.5vw, 19px);
+      line-height: 1.2;
+      overflow-wrap: anywhere;
+    }
+
+    .et-record-card small {
+      margin-top: 6px;
+      font-size: 11px;
+    }
+
+    .final-live-analysis {
+      margin-top: 18px;
+      padding-top: 16px;
+    }
+
+    .libra-bonus,
+    .phoebe-result-comment,
+    .club-teaser-flow {
+      margin-top: 16px;
+    }
+
+    .libra-bonus {
+      padding: 14px;
+      border-radius: 12px;
+    }
+
+    .libra-bonus strong,
+    .phoebe-result-comment strong {
+      font-size: 16px;
+      line-height: 1.35;
+    }
+
+    .club-teaser-message {
+      border-radius: 14px;
+      padding: 15px;
+      font-size: 17px;
+      line-height: 1.3;
+    }
+
+    .club-teaser-card {
+      border-radius: 14px;
+      padding: 18px;
+    }
+
+    .competition-list {
+      gap: 7px;
+    }
+
+    .teaser-features {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin: 18px 0;
+    }
+
+    .teaser-features span {
+      border-radius: 10px;
+      padding: 10px 8px;
+      font-size: 11px;
+    }
+
+    .loading-screen {
+      min-height: calc(100svh - 70px);
+      gap: 30px;
+    }
+
+    .loading-ball {
+      width: 92px;
+    }
+
+    .loading-screen strong {
+      font-size: 18px;
+    }
+
+    .phoebe-companion {
+      right: 10px;
+      bottom: 10px;
+      width: min(360px, calc(100vw - 20px));
+      min-height: 176px;
+    }
+
+    .phoebe-bubble {
+      right: 76px;
+      bottom: 92px;
+      width: min(284px, calc(100vw - 104px));
+      border-radius: 16px 16px 5px 16px;
+      padding: 12px 13px;
+    }
+
+    .phoebe-bubble p {
+      font-size: 12px;
+      line-height: 1.42;
+    }
+
+    .phoebe-actions {
+      margin-top: 10px;
+      gap: 6px;
+    }
+
+    .phoebe-actions .primary,
+    .phoebe-actions .secondary {
+      min-height: 34px;
+      padding: 8px 10px;
+      font-size: 12px;
+    }
+
+    .phoebe-mascot {
+      width: 78px;
+      height: 112px;
+      border-radius: 20px;
+    }
+  }
+
+  @media (max-width: 430px) {
+    .page {
+      padding: 10px;
+    }
+
+    .panel {
+      padding: 13px;
+    }
+
+    .hero-shell {
+      min-height: 485px;
+      padding: 36px 16px 18px;
+    }
+
+    .hero-content h1 {
+      font-size: clamp(38px, 13vw, 52px);
+    }
+
+    .hero-copy {
+      max-width: 280px;
+      font-size: 21px;
+    }
+
+    .hero-tagline {
+      margin-bottom: 18px;
+    }
+
+    .featured-player-card {
+      display: none;
+    }
+
+    .mode-screen,
+    .formation-screen {
+      padding: 16px 10px;
+    }
+
+    .mode-card-image {
+      width: min(62%, 150px);
+      height: 104px;
+    }
+
+    .formation-grid button {
+      min-height: 80px;
+    }
+
+    .universe-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .player-list {
+      max-height: 390px;
+    }
+
+    .pitch,
+    .final-pitch {
+      height: clamp(360px, 112vw, 490px);
+    }
+
+    .summary {
+      grid-template-columns: 1fr;
+    }
+
+    .analysis-stage,
+    .simulation-stage {
+      border-radius: 14px;
+    }
+
+    .analysis-footer,
+    .simulation-footer {
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+
+    .analysis-continue,
+    .simulation-footer .primary {
+      width: 100%;
+    }
+
+    .phoebe-bubble {
+      right: 62px;
+      width: min(260px, calc(100vw - 86px));
+    }
+
+    .phoebe-mascot {
+      width: 66px;
+      height: 96px;
     }
   }
 

@@ -433,4 +433,135 @@
       font-size: 28px;
     }
   }
+
+  @media (max-width: 768px) {
+    .balance-panel {
+      margin-top: 16px;
+      padding-top: 16px;
+    }
+
+    .final-analysis {
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    .balance-header {
+      gap: 12px;
+    }
+
+    .balance-header span,
+    .formation-badge small,
+    .balance-factors span,
+    .balance-insight span {
+      font-size: 8px;
+      letter-spacing: 0.1em;
+    }
+
+    .balance-header h3 {
+      font-size: 18px;
+    }
+
+    .formation-badge {
+      border-radius: 8px;
+      padding: 7px 9px;
+    }
+
+    .profile-grid {
+      margin-top: 12px;
+      gap: 10px;
+    }
+
+    .chart-shell svg {
+      max-height: 210px;
+    }
+
+    .shape-status {
+      padding: 4px 7px;
+      font-size: 8px;
+    }
+
+    .line-scores {
+      gap: 10px;
+    }
+
+    .line-scores span {
+      font-size: 10px;
+    }
+
+    .line-scores strong {
+      font-size: 14px;
+    }
+
+    .balance-factors {
+      margin-top: 12px;
+      gap: 7px;
+    }
+
+    .balance-factors article {
+      border-radius: 8px;
+      padding: 9px;
+    }
+
+    .balance-factors strong {
+      font-size: 15px;
+    }
+
+    .libra-scale {
+      min-height: 126px;
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    .libra-scale svg {
+      height: 106px;
+    }
+
+    .libra-copy strong {
+      font-size: 28px;
+    }
+
+    .libra-copy p {
+      font-size: 12px;
+    }
+
+    .balance-insight {
+      margin-top: 9px;
+      padding: 10px 12px;
+    }
+
+    .balance-insight p {
+      font-size: 12px;
+      line-height: 1.42;
+    }
+  }
+
+  @media (max-width: 430px) {
+    .balance-header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: start;
+    }
+
+    .chart-shell svg {
+      max-height: 184px;
+    }
+
+    .label {
+      font-size: 9px;
+    }
+
+    .balance-factors {
+      grid-template-columns: 1fr;
+    }
+
+    .libra-scale {
+      grid-template-columns: 1fr;
+      gap: 8px;
+      text-align: center;
+    }
+
+    .libra-scale svg {
+      height: 94px;
+    }
+  }
 </style>
