@@ -393,18 +393,6 @@
     ]
   };
 
-  const formationIdentities: Record<string, string> = {
-    "4-3-3": "Balanced width",
-    "4-4-2": "Classic two-striker shape",
-    "4-4-1-1": "Compact support striker",
-    "4-2-3-1": "Modern CAM system",
-    "4-1-4-1": "Midfield control",
-    "3-5-2": "Wingback midfield overload",
-    "3-4-3": "Attack-first pressure",
-    "3-4-2-1": "Narrow creator overload",
-    "5-4-1": "Defensive fortress"
-  };
-
   const clubColors: Record<string, string> = {
     Chelsea: "#2563eb",
     Arsenal: "#dc2626",
@@ -2505,6 +2493,17 @@
   function restart() {
     backToMenu();
   }
+
+  async function shareFinalResult() {
+    const text = `My Galactico11 ${formation} scored ${avgIog} average IoG with ${chemistry}% chemistry.`;
+    if (typeof navigator !== "undefined" && navigator.share) {
+      await navigator.share({ title: "Galactico11 Final XI", text });
+      return;
+    }
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      await navigator.clipboard.writeText(text);
+    }
+  }
 </script>
 
 <main class="page" style={`--accent:${accent}`}>
@@ -2585,6 +2584,17 @@
           <p>A true Galáctico is recognised globally, influences generations, and leaves a lasting mark on football history.</p>
         </div>
       </article>
+
+      <div class="mobile-info-stack" aria-label="Galactico11 mobile guide">
+        <article>
+          <span>What is IoG</span>
+          <p>Impact on Game measures how strongly a player can influence winning football matches.</p>
+        </article>
+        <article>
+          <span>How the game works</span>
+          <p>Pick a mode, choose a formation, draft eleven players, then let Phoebe reveal the final squad story.</p>
+        </article>
+      </div>
     </section>
   {/if}
 
@@ -2692,7 +2702,6 @@
           <button on:click={() => chooseFormation(item)}>
             <span>Formation</span>
             <strong>{item}</strong>
-            <small>{formationIdentities[item]}</small>
           </button>
         {/each}
       </div>
@@ -2709,6 +2718,66 @@
           </div>
 
           <div class="counter">{picked.length}/11</div>
+        </div>
+
+        <div class="mobile-draft-sticky" aria-label="Mobile draft controls">
+          <div class="mobile-draft-pills">
+            <span><b>Formation</b> {formation}</span>
+            <span><b>Libra</b> {libraScore ?? "-"}</span>
+            <span><b>Balance</b> {finalBalanceProfile.status}</span>
+            <span><b>Chemistry</b> {chemistry}%</span>
+            <span><b>Progress</b> {picked.length}/11</span>
+            <span><b>Respins</b> {respinsRemaining}</span>
+          </div>
+
+          <div class="mobile-squad-tracker" aria-label={`Selected ${picked.length} of 11 players`}>
+            <div class="mobile-squad-head">
+              <strong>{formation}</strong>
+              <span>Tap a glowing slot to assign</span>
+            </div>
+
+            <div class="mobile-squad-slots">
+              {#each pitchSlots as slot}
+                <button
+                  class:filled={slot.state === "filled"}
+                  class:eligible={slot.state === "eligible"}
+                  class:locked={slot.state === "locked"}
+                  class:selected={selectedSlotId === slot.id}
+                  disabled={slot.state === "filled" || slot.state === "locked"}
+                  on:click={() => clickSlot(slot)}
+                  aria-label={`${slot.label} squad slot`}
+                >
+                  {#if slot.player}
+                    {#if isMysteryIdentityHidden(slot.player)}
+                      <strong>???</strong>
+                      <small>{slot.label}</small>
+                    {:else}
+                      <strong>{initials(slot.player.name)}</strong>
+                      <small>{slot.player.adjustedIog}</small>
+                    {/if}
+                  {:else}
+                    <strong>{slot.label}</strong>
+                    <small>Empty</small>
+                  {/if}
+                </button>
+              {/each}
+            </div>
+          </div>
+
+          {#if selectedPlayer}
+            <div class="mobile-assign-strip">
+              <span>
+                {#if isMysteryCardHidden(selectedPlayer)}
+                  Mystery Pick selected
+                {:else}
+                  {selectedPlayer.name} selected
+                {/if}
+              </span>
+              <button class="primary" disabled={!selectedSlotId} on:click={() => assignSelected()}>
+                Assign {selectedSlotId ? slots.find((s) => s.id === selectedSlotId)?.label : ""}
+              </button>
+            </div>
+          {/if}
         </div>
 
         {#if isGoldenRound || draftMode !== "et"}
@@ -2834,8 +2903,16 @@
                       <strong class="mystery-unknown">Mystery Pick</strong>
                       <small>Eligible Slot: {eligibleSlotLabels(player)[0] ?? "?"}</small>
                     {:else}
-                      <strong>{player.name}</strong>
-                      <small>
+                      <strong class="desktop-player-name">{player.name}</strong>
+                      <div class="mobile-player-head">
+                        <div class="mobile-player-initials" aria-hidden="true">{initials(player.name)}</div>
+                        <div>
+                          <strong>{player.name}</strong>
+                          <small>{player.nation ?? player.club} · {getPositions(player).join(" · ")}</small>
+                        </div>
+                        <b>{player.adjustedIog}</b>
+                      </div>
+                      <small class="desktop-player-meta">
                         {player.nation ?? player.club} · {getPositions(player).join(" · ")} · {player.era}
                       </small>
                       <div class="iog-line">
@@ -2905,47 +2982,6 @@
                 Select a player
               </div>
             {/if}
-          </div>
-        </div>
-
-        <div class="mobile-draft-metrics" aria-label="Compact draft metrics">
-          <span><b>Libra Score</b> {libraScore ?? "-"}</span>
-          <span><b>Team Balance</b> {finalBalanceProfile.status}</span>
-          <span><b>Chemistry</b> {chemistry}%</span>
-          <span><b>Selected</b> {picked.length}/11</span>
-        </div>
-
-        <div class="mobile-squad-tracker" aria-label={`Selected ${picked.length} of 11 players`}>
-          <div class="mobile-squad-head">
-            <strong>Selected {picked.length}/11</strong>
-            <span>{formation}</span>
-          </div>
-
-          <div class="mobile-squad-slots">
-            {#each pitchSlots as slot}
-              <button
-                class:filled={slot.state === "filled"}
-                class:eligible={slot.state === "eligible"}
-                class:locked={slot.state === "locked"}
-                class:selected={selectedSlotId === slot.id}
-                disabled={slot.state === "filled" || slot.state === "locked"}
-                on:click={() => clickSlot(slot)}
-                aria-label={`${slot.label} squad slot`}
-              >
-                {#if slot.player}
-                  {#if isMysteryIdentityHidden(slot.player)}
-                    <strong>???</strong>
-                    <small>{slot.label}</small>
-                  {:else}
-                    <strong>{initials(slot.player.name)}</strong>
-                    <small>{slot.player.adjustedIog}</small>
-                  {/if}
-                {:else}
-                  <strong>{slot.label}</strong>
-                  <small>Empty</small>
-                {/if}
-              </button>
-            {/each}
           </div>
         </div>
 
@@ -3206,7 +3242,10 @@
           <p class="muted">Your XI is complete.</p>
         </div>
 
-        <button class="secondary" on:click={restart}>Play Again</button>
+        <div class="result-actions">
+          <button class="secondary" on:click={shareFinalResult}>Share</button>
+          <button class="secondary" on:click={restart}>Play Again</button>
+        </div>
       </div>
 
       <div class="result-grid">
@@ -3358,6 +3397,10 @@
 <style>
   :global(*) {
     box-sizing: border-box;
+  }
+
+  :global(html) {
+    scroll-behavior: smooth;
   }
 
   :global(body) {
@@ -4086,6 +4129,13 @@
     align-items: flex-start;
   }
 
+  .result-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+
   .board-head {
     align-items: center;
     gap: 18px;
@@ -4133,7 +4183,7 @@
     color: #c9a646;
   }
 
-  .mobile-draft-metrics {
+  .mobile-draft-sticky {
     display: none;
   }
 
@@ -4387,6 +4437,10 @@
   .player-main strong {
     display: block;
     font-size: 20px;
+  }
+
+  .mobile-player-head {
+    display: none;
   }
 
   .player-main small {
@@ -5962,8 +6016,22 @@
       display: none;
     }
 
+    .nav-brand::before {
+      content: "Galactico11";
+      color: #c5cad8;
+      font-size: 11px;
+      font-weight: 850;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
     .nav img {
-      height: 46px;
+      display: none;
+    }
+
+    .nav-brand {
+      min-width: 1px;
+      flex: 1 1 auto;
     }
 
     .iog-help-label {
@@ -5996,9 +6064,9 @@
     .primary,
     .secondary,
     .back-link {
-      min-height: 42px;
-      padding: 11px 16px;
-      font-size: 14px;
+      min-height: 56px;
+      padding: 15px 18px;
+      font-size: 15px;
     }
 
     .main-menu {
@@ -6033,9 +6101,9 @@
 
     .mobile-menu-logo {
       display: block;
-      height: 68px;
+      height: clamp(118px, 29vw, 150px);
       width: auto;
-      margin: 0 auto 14px;
+      margin: 0 auto 16px;
     }
 
     .hero-content h1 {
@@ -6082,6 +6150,35 @@
       margin-top: 18px;
       border-radius: 18px;
       padding: 22px 18px;
+    }
+
+    .mobile-info-stack {
+      margin-top: 14px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .mobile-info-stack article {
+      border: 1px solid #262a38;
+      border-radius: 18px;
+      background: rgba(16, 18, 26, 0.72);
+      padding: 18px;
+    }
+
+    .mobile-info-stack span {
+      display: block;
+      color: #c9a646;
+      font-size: 11px;
+      font-weight: 950;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .mobile-info-stack p {
+      margin: 8px 0 0;
+      color: #d7dae3;
+      font-size: 14px;
+      line-height: 1.5;
     }
 
     .entry-word {
@@ -6171,12 +6268,13 @@
 
     .formation-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
     }
 
     .formation-grid button {
-      min-height: 88px;
-      border-radius: 14px;
-      padding: 12px 8px;
+      min-height: 112px;
+      border-radius: 18px;
+      padding: 18px 10px;
     }
 
     .formation-grid span {
@@ -6185,22 +6283,21 @@
     }
 
     .formation-grid strong {
-      margin-top: 6px;
-      font-size: clamp(22px, 7vw, 30px);
-    }
-
-    .formation-grid small {
-      display: block;
-      margin-top: 5px;
-      color: #a7adc2;
-      font-size: 11px;
-      font-weight: 750;
-      line-height: 1.25;
+      margin-top: 8px;
+      font-size: clamp(25px, 8vw, 34px);
     }
 
     .draft-grid {
       width: 100%;
       gap: 14px;
+    }
+
+    .draft-grid > .panel.left {
+      padding: 12px;
+    }
+
+    .draft-grid > .panel.right {
+      display: none;
     }
 
     .draft-head,
@@ -6209,8 +6306,13 @@
       gap: 12px;
     }
 
+    .draft-head {
+      align-items: center;
+    }
+
     .draft-head h1 {
-      font-size: clamp(27px, 8vw, 36px);
+      margin-block: 5px 0;
+      font-size: clamp(24px, 7vw, 32px);
     }
 
     .counter,
@@ -6219,43 +6321,53 @@
       font-size: 12px;
     }
 
-    .board-head {
+    .mobile-draft-sticky {
+      position: sticky;
+      top: 8px;
+      z-index: 30;
+      margin: 10px -4px 10px;
       display: grid;
-      grid-template-columns: 1fr;
-      padding-bottom: 12px;
+      gap: 9px;
+      border: 1px solid rgba(201, 166, 70, 0.22);
+      border-radius: 16px;
+      background: rgba(10, 12, 18, 0.96);
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
+      padding: 10px;
+      backdrop-filter: blur(14px);
     }
 
-    .draft-grid .board-status {
-      display: none;
-    }
-
-    .mobile-draft-metrics {
-      margin-top: 12px;
+    .mobile-draft-pills {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 7px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
     }
 
-    .mobile-draft-metrics span {
+    .mobile-draft-pills span {
       min-width: 0;
       border: 1px solid rgba(201, 166, 70, 0.24);
       border-radius: 999px;
       background: rgba(201, 166, 70, 0.07);
-      padding: 8px 10px;
+      padding: 7px 8px;
       color: #f1f2f5;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 850;
       line-height: 1.2;
-      overflow-wrap: anywhere;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    .mobile-draft-metrics b {
+    .mobile-draft-pills b {
       margin-right: 4px;
       color: #8f95a5;
       font-weight: 800;
     }
 
     .live-analysis-visual {
+      display: none;
+    }
+
+    .draft-grid .universe-grid {
       display: none;
     }
 
@@ -6292,6 +6404,11 @@
       grid-template-columns: 1fr;
     }
 
+    .draft-grid .controls {
+      margin-top: 8px;
+      gap: 8px;
+    }
+
     .status,
     .notice {
       margin-top: 14px;
@@ -6314,14 +6431,14 @@
     }
 
     .player-list {
-      max-height: 420px;
-      gap: 9px;
+      max-height: min(46svh, 420px);
+      gap: 14px;
       padding-right: 0;
     }
 
     .player-card {
-      border-radius: 14px;
-      padding: 12px;
+      border-radius: 20px;
+      padding: 16px;
     }
 
     .draft-label {
@@ -6332,19 +6449,76 @@
     }
 
     .player-main strong {
-      font-size: 17px;
+      font-size: 21px;
       line-height: 1.18;
+    }
+
+    .desktop-player-name,
+    .desktop-player-meta {
+      display: none !important;
+    }
+
+    .mobile-player-head {
+      display: grid;
+      grid-template-columns: 56px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .mobile-player-initials {
+      width: 56px;
+      height: 56px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(201, 166, 70, 0.35);
+      border-radius: 18px;
+      background: rgba(201, 166, 70, 0.09);
+      color: #f4f4f5;
+      font-size: 19px;
+      font-weight: 950;
+    }
+
+    .mobile-player-head > div:nth-child(2) {
+      min-width: 0;
+    }
+
+    .mobile-player-head strong {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .mobile-player-head small {
+      margin-top: 5px;
+      color: #aeb4c2;
+      font-size: 13px;
+      line-height: 1.25;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .mobile-player-head > b {
+      color: #c9a646;
+      font-size: 31px;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
     }
 
     .player-main small,
     .slot-info span {
-      font-size: 11px;
+      font-size: 12px;
       line-height: 1.35;
     }
 
     .iog-line {
-      margin-top: 8px;
+      margin-top: 12px;
       gap: 8px;
+    }
+
+    .iog-line span,
+    .iog-line b {
+      display: none;
     }
 
     .iog-line b {
@@ -6368,6 +6542,7 @@
     }
 
     .progress {
+      display: none;
       margin-top: 16px;
       gap: 5px;
     }
@@ -6388,9 +6563,8 @@
     }
 
     .mobile-squad-tracker {
-      margin-top: 12px;
       display: grid;
-      gap: 10px;
+      gap: 8px;
     }
 
     .mobile-squad-head {
@@ -6399,7 +6573,7 @@
       justify-content: space-between;
       gap: 12px;
       color: #c6cad4;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 850;
     }
 
@@ -6409,8 +6583,8 @@
 
     .mobile-squad-slots {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 8px;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 6px;
     }
 
     .mobile-squad-slots button {
@@ -6424,7 +6598,7 @@
       place-items: center;
       align-content: center;
       gap: 2px;
-      padding: 6px;
+      padding: 4px;
       cursor: not-allowed;
       transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
     }
@@ -6452,15 +6626,40 @@
     }
 
     .mobile-squad-slots strong {
-      font-size: clamp(12px, 3.8vw, 16px);
+      font-size: clamp(10px, 3vw, 14px);
       line-height: 1;
     }
 
     .mobile-squad-slots small {
       color: #8f95a5;
-      font-size: 9px;
+      font-size: 8px;
       font-weight: 850;
       line-height: 1;
+    }
+
+    .mobile-assign-strip {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 8px;
+    }
+
+    .mobile-assign-strip span {
+      min-width: 0;
+      color: #f4f4f5;
+      font-size: 12px;
+      font-weight: 850;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .mobile-assign-strip .primary {
+      min-height: 48px;
+      padding: 10px 14px;
+      font-size: 12px;
     }
 
     .pitch::after,
@@ -6738,6 +6937,17 @@
       grid-template-columns: 1fr;
     }
 
+    .result-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      justify-content: stretch;
+    }
+
+    .result-actions .secondary {
+      width: 100%;
+      justify-content: center;
+    }
+
     .result-logo {
       height: 42px;
       margin-bottom: 10px;
@@ -6876,6 +7086,10 @@
       height: 112px;
       border-radius: 20px;
     }
+  }
+
+  .mobile-info-stack {
+    display: none;
   }
 
   @media (max-width: 430px) {
