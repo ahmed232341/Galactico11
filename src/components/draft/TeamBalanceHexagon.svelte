@@ -443,7 +443,7 @@
 
     .final-analysis {
       border-radius: 14px;
-      padding: 14px;
+      padding: 18px;
     }
 
     .balance-header {
@@ -472,8 +472,19 @@
       gap: 10px;
     }
 
+    .final-analysis .profile-grid {
+      grid-template-columns: 1fr;
+      align-items: stretch;
+    }
+
     .chart-shell svg {
       max-height: 210px;
+    }
+
+    .final-analysis .chart-shell svg {
+      height: clamp(180px, 48vw, 220px);
+      max-height: 220px;
+      margin-inline: auto;
     }
 
     .shape-status {
@@ -508,13 +519,18 @@
     }
 
     .libra-scale {
-      min-height: 126px;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 104px minmax(0, 1fr);
+      align-items: center;
       border-radius: 10px;
       padding: 12px;
+      gap: 10px;
     }
 
     .libra-scale svg {
-      height: 106px;
+      height: 108px;
+      min-width: 0;
     }
 
     .libra-copy strong {
@@ -547,6 +563,11 @@
       max-height: 184px;
     }
 
+    .final-analysis .chart-shell svg {
+      height: 180px;
+      max-height: 190px;
+    }
+
     .label {
       font-size: 9px;
     }
@@ -556,13 +577,13 @@
     }
 
     .libra-scale {
-      grid-template-columns: 1fr;
+      grid-template-columns: 92px minmax(0, 1fr);
       gap: 8px;
-      text-align: center;
+      text-align: left;
     }
 
     .libra-scale svg {
-      height: 94px;
+      height: 92px;
     }
   }
 </style>

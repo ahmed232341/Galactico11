@@ -10470,14 +10470,14 @@
 
     .mobile-player-head {
       display: grid;
-      grid-template-columns: 40px minmax(0, 1fr) auto;
+      grid-template-columns: 46px minmax(0, 1fr) 72px;
       align-items: center;
       gap: 9px;
     }
 
     .mobile-player-initials {
-      width: 40px;
-      height: 40px;
+      width: 42px;
+      height: 42px;
       display: grid;
       place-items: center;
       border: 1px solid rgba(201, 166, 70, 0.35);
@@ -10511,9 +10511,10 @@
     }
 
     .mobile-card-metrics {
-      min-width: 64px;
+      width: 72px;
       display: grid;
-      justify-items: end;
+      justify-items: center;
+      text-align: center;
       gap: 2px;
     }
 
@@ -11301,8 +11302,12 @@
     }
 
     .analysis-card {
-      padding: 16px;
+      padding: 14px;
       border-radius: 14px;
+    }
+
+    .tactical-hexagon {
+      margin-top: 10px;
     }
 
     .analysis-copy h1.et-phoebe-completion-message {
