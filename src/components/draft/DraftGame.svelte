@@ -3990,6 +3990,20 @@
       .filter((item) => hasDisplayableStat(item.rawValue));
   }
 
+  function shortStatLabel(label: string) {
+    const labels: Record<string, string> = {
+      "Clean Sheets": "CS",
+      "PSxG Prevented": "PSxG",
+      "Distribution %": "Dist",
+      "Interceptions": "Int",
+      "Aerial Wins": "Aerial",
+      "Prog Passes": "Pass",
+      "Prog Carries": "Carry",
+      "Shot Creation": "SC"
+    };
+    return labels[label] ?? label;
+  }
+
   function restart() {
     backToMenu();
   }
@@ -4614,9 +4628,15 @@
                         <div class="mobile-player-initials" aria-hidden="true">{initials(player.name)}</div>
                         <div>
                           <strong>{player.name}</strong>
-                          <small>{displayTeamContext(player)} · {getPositions(player).join(" · ")}</small>
+                          <small>{getPositions(player).join(" · ")}</small>
+                          <small>{displayTeamContext(player)} · {player.era}</small>
                         </div>
-                        <b>{formatIoG(player.adjustedIog)}</b>
+                        <div class="mobile-card-metrics">
+                          <b>{formatIoG(player.adjustedIog)}</b>
+                          {#each statRows(player).slice(0, 2) as stat}
+                            <span>{shortStatLabel(stat.label)} {stat.value}</span>
+                          {/each}
+                        </div>
                       </div>
                       <small class="desktop-player-meta">
                         {displayTeamContext(player)} · {getPositions(player).join(" · ")} · {player.era}
@@ -4788,21 +4808,43 @@
       </div>
 
       {#if selectedPlayer}
+        <button
+          type="button"
+          class="mobile-sheet-backdrop"
+          aria-label="Close position chooser"
+          on:click={() => { selectedPlayer = null; selectedSlotId = ""; }}
+        ></button>
         <div class="mobile-slot-sheet" role="dialog" aria-label="Assign selected player">
           <div class="mobile-slot-sheet-handle"></div>
           <header>
             <div>
               <span>Assign Player</span>
-              <strong>{isMysteryCardHidden(selectedPlayer) ? "Mystery Pick" : selectedPlayer.name}</strong>
+              <strong>{isMysteryCardHidden(selectedPlayer) ? "Mystery Pick" : selectedPlayer.name} — Choose Position</strong>
             </div>
-            <button type="button" on:click={() => { selectedPlayer = null; selectedSlotId = ""; }}>Close</button>
+            <button type="button" aria-label="Close position chooser" on:click={() => { selectedPlayer = null; selectedSlotId = ""; }}>×</button>
           </header>
-          <p>{isMysteryCardHidden(selectedPlayer) ? "Identity hidden. Choose one legal role." : `Eligible slots for ${getPositions(selectedPlayer).join(", ")}`}</p>
+          <p>Tap an eligible spot.</p>
           <div class="mobile-slot-list">
-            {#each getCompatibleSlots(selectedPlayer) as slot}
-              <button type="button" on:click={() => assignSelected(slot)}>
+            {#each pitchSlots as slot}
+              <button
+                type="button"
+                class:eligible={slot.state === "eligible"}
+                class:filled={slot.state === "filled"}
+                class:unavailable={slot.state === "locked"}
+                class:selected={selectedSlotId === slot.id}
+                disabled={slot.state !== "eligible"}
+                on:click={() => assignSelected(slot)}
+              >
                 <strong>{slot.label}</strong>
-                <span>{slot.id.toUpperCase()}</span>
+                <span>
+                  {#if slot.state === "filled"}
+                    Filled
+                  {:else if slot.state === "eligible"}
+                    Eligible
+                  {:else}
+                    N/A
+                  {/if}
+                </span>
               </button>
             {/each}
           </div>
@@ -6592,6 +6634,10 @@
   }
 
   .mobile-slot-sheet {
+    display: none;
+  }
+
+  .mobile-sheet-backdrop {
     display: none;
   }
 
@@ -10224,7 +10270,7 @@
     }
 
     .draft-grid > .panel.left {
-      padding: 12px;
+      padding: 10px;
     }
 
     .draft-grid > .panel.right {
@@ -10239,11 +10285,17 @@
 
     .draft-head {
       align-items: center;
+      margin-bottom: 6px;
     }
 
     .draft-head h1 {
-      margin-block: 5px 0;
-      font-size: clamp(24px, 7vw, 32px);
+      margin-block: 3px 0;
+      font-size: clamp(21px, 6vw, 28px);
+    }
+
+    .draft-head .kicker {
+      font-size: 9px;
+      letter-spacing: 0.11em;
     }
 
     .counter,
@@ -10256,21 +10308,21 @@
       position: sticky;
       top: 8px;
       z-index: 30;
-      margin: 10px -4px 10px;
+      margin: 8px -4px 8px;
       display: grid;
-      gap: 9px;
+      gap: 8px;
       border: 1px solid rgba(201, 166, 70, 0.22);
-      border-radius: 16px;
+      border-radius: 14px;
       background: rgba(10, 12, 18, 0.96);
       box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
-      padding: 10px;
+      padding: 8px;
       backdrop-filter: blur(14px);
     }
 
     .mobile-draft-pills {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 8px;
+      gap: 6px;
     }
 
     .mobile-draft-pills span {
@@ -10278,9 +10330,9 @@
       border: 1px solid rgba(201, 166, 70, 0.24);
       border-radius: 999px;
       background: rgba(201, 166, 70, 0.07);
-      padding: 9px 10px;
+      padding: 7px 8px;
       color: #f1f2f5;
-      font-size: 12px;
+      font-size: 10px;
       font-weight: 850;
       line-height: 1.2;
       white-space: nowrap;
@@ -10295,7 +10347,7 @@
     .mobile-draft-pills i {
       color: #c9a646;
       font-style: normal;
-      font-size: 13px;
+      font-size: 11px;
       line-height: 1;
     }
 
@@ -10334,10 +10386,11 @@
       line-height: 1.2;
     }
 
-    .controls,
     .pool-tools {
       display: grid;
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1.2fr) minmax(96px, 0.55fr) minmax(96px, 0.55fr);
+      gap: 8px;
+      margin-top: 10px;
     }
 
     .draft-grid .controls {
@@ -10365,31 +10418,41 @@
 
     .search,
     .pool-tools select {
-      min-height: 42px;
-      border-radius: 12px;
-      padding: 11px 12px;
-      font-size: 14px;
+      min-height: 38px;
+      border-radius: 11px;
+      padding: 9px 10px;
+      font-size: 13px;
     }
 
     .spots {
-      margin: 12px 0;
-      font-size: 12px;
+      margin: 8px 0;
+      font-size: 11px;
       line-height: 1.4;
     }
 
     .player-list {
-      max-height: min(46svh, 420px);
-      gap: 14px;
+      max-height: min(53svh, 520px);
+      gap: 7px;
       padding-right: 0;
     }
 
     .player-card {
-      border-radius: 20px;
-      padding: 16px;
+      min-height: 76px;
+      border-radius: 14px;
+      padding: 9px 10px;
+    }
+
+    .player-card:hover {
+      transform: none;
+    }
+
+    .player-card.selected {
+      box-shadow: 0 0 0 1px rgba(201, 166, 70, 0.78), 0 0 18px rgba(201, 166, 70, 0.18);
     }
 
     .draft-label {
-      margin-bottom: 8px;
+      display: none;
+      margin-bottom: 0;
       padding: 3px 7px;
       font-size: 8px;
       letter-spacing: 0.08em;
@@ -10407,21 +10470,21 @@
 
     .mobile-player-head {
       display: grid;
-      grid-template-columns: 56px minmax(0, 1fr) auto;
+      grid-template-columns: 40px minmax(0, 1fr) auto;
       align-items: center;
-      gap: 12px;
+      gap: 9px;
     }
 
     .mobile-player-initials {
-      width: 56px;
-      height: 56px;
+      width: 40px;
+      height: 40px;
       display: grid;
       place-items: center;
       border: 1px solid rgba(201, 166, 70, 0.35);
-      border-radius: 18px;
+      border-radius: 12px;
       background: rgba(201, 166, 70, 0.09);
       color: #f4f4f5;
-      font-size: 19px;
+      font-size: 13px;
       font-weight: 950;
     }
 
@@ -10430,26 +10493,52 @@
     }
 
     .mobile-player-head strong {
+      font-size: 15px;
+      line-height: 1.12;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
 
     .mobile-player-head small {
-      margin-top: 5px;
+      margin-top: 2px;
       color: #aeb4c2;
-      font-size: 13px;
-      line-height: 1.25;
+      font-size: 10px;
+      line-height: 1.18;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
 
-    .mobile-player-head > b {
+    .mobile-card-metrics {
+      min-width: 64px;
+      display: grid;
+      justify-items: end;
+      gap: 2px;
+    }
+
+    .mobile-card-metrics::before {
+      content: "IoG";
+      color: #8f95a5;
+      font-size: 8px;
+      font-weight: 950;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .mobile-card-metrics b {
       color: #c9a646;
-      font-size: 31px;
+      font-size: 20px;
       line-height: 1;
       font-variant-numeric: tabular-nums;
+    }
+
+    .mobile-card-metrics span {
+      color: #d7dbe5;
+      font-size: 9px;
+      font-weight: 850;
+      line-height: 1.05;
+      white-space: nowrap;
     }
 
     .player-main small,
@@ -10459,7 +10548,7 @@
     }
 
     .iog-line {
-      margin-top: 12px;
+      margin-top: 0;
       gap: 8px;
     }
 
@@ -10473,8 +10562,16 @@
     }
 
     .real-stats {
+      display: none;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 6px;
+    }
+
+    .slot-info,
+    .stats-details,
+    .compare-toggle,
+    .iog-breakdown {
+      display: none;
     }
 
     .real-stats b {
@@ -10520,21 +10617,26 @@
     }
 
     .mobile-squad-tracker {
-      display: none;
+      display: grid;
+      gap: 6px;
     }
 
     .mobile-squad-slots {
-      position: relative;
-      height: 188px;
+      position: static;
+      height: auto;
       margin-inline: auto;
-      width: min(100%, 340px);
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 6px;
     }
 
     .mobile-squad-slots button {
-      position: absolute;
-      transform: translate(-50%, -50%);
-      width: clamp(42px, 12vw, 54px);
-      height: clamp(42px, 12vw, 54px);
+      position: static;
+      transform: none;
+      width: 100%;
+      aspect-ratio: 1;
+      min-height: 0;
       border: 1px solid #2d3342;
       border-radius: 50%;
       background: #151823;
@@ -10582,19 +10684,19 @@
     }
 
     .mobile-squad-slots strong {
-      font-size: clamp(10px, 3vw, 13px);
+      font-size: clamp(9px, 2.8vw, 12px);
       line-height: 1;
     }
 
     .mobile-squad-slots small {
       color: #8f95a5;
-      font-size: 7px;
+      font-size: 6.5px;
       font-weight: 850;
       line-height: 1;
     }
 
     .mobile-assign-strip {
-      display: grid;
+      display: none;
       grid-template-columns: minmax(0, 1fr) auto;
       align-items: center;
       gap: 8px;
@@ -10618,20 +10720,34 @@
       font-size: 12px;
     }
 
+    .mobile-sheet-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 79;
+      display: block;
+      border: 0;
+      background: rgba(0, 0, 0, 0.48);
+      backdrop-filter: blur(2px);
+      padding: 0;
+    }
+
     .mobile-slot-sheet {
       position: fixed;
-      left: 10px;
-      right: 10px;
-      bottom: 10px;
+      left: 0;
+      right: 0;
+      bottom: 0;
       z-index: 80;
       display: block;
-      border: 1px solid rgba(201, 166, 70, 0.38);
-      border-radius: 22px;
+      border: 1px solid rgba(201, 166, 70, 0.34);
+      border-bottom: 0;
+      border-radius: 24px 24px 0 0;
       background: rgba(10, 12, 18, 0.97);
       box-shadow: 0 24px 70px rgba(0, 0, 0, 0.52);
-      padding: 12px;
+      padding: 12px 14px max(16px, env(safe-area-inset-bottom));
       backdrop-filter: blur(18px);
       animation: mobileSheetIn 0.22s ease both;
+      max-height: min(72svh, 520px);
+      overflow-y: auto;
     }
 
     .mobile-slot-sheet-handle {
@@ -10662,47 +10778,73 @@
       display: block;
       margin-top: 3px;
       color: #fff;
-      font-size: 17px;
+      font-size: clamp(18px, 5.2vw, 22px);
       line-height: 1.15;
     }
 
     .mobile-slot-sheet header button {
       border: 1px solid #2d3342;
-      border-radius: 999px;
+      border-radius: 14px;
       background: #151823;
       color: #f4f4f5;
-      padding: 8px 12px;
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      display: grid;
+      place-items: center;
+      font-size: 25px;
+      line-height: 1;
       font-weight: 850;
     }
 
     .mobile-slot-sheet p {
-      margin: 10px 0;
+      margin: 8px 0 12px;
       color: #b9bfcc;
-      font-size: 13px;
+      font-size: 14px;
+      font-weight: 750;
       line-height: 1.35;
     }
 
     .mobile-slot-list {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 8px;
     }
 
     .mobile-slot-list button {
-      min-height: 54px;
-      border: 1px solid rgba(201, 166, 70, 0.36);
+      min-height: 68px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 16px;
-      background: rgba(201, 166, 70, 0.11);
-      color: #fff;
+      background: rgba(21, 24, 35, 0.78);
+      color: rgba(255, 255, 255, 0.46);
       padding: 8px;
       font-weight: 900;
+    }
+
+    .mobile-slot-list button.eligible {
+      border-color: rgba(201, 166, 70, 0.78);
+      background: rgba(201, 166, 70, 0.16);
+      color: #fff;
+      box-shadow: 0 0 0 3px rgba(201, 166, 70, 0.12);
+    }
+
+    .mobile-slot-list button.selected {
+      outline: 2px solid #fff;
+      outline-offset: 2px;
+    }
+
+    .mobile-slot-list button.filled,
+    .mobile-slot-list button.unavailable {
+      opacity: 0.48;
+      cursor: not-allowed;
     }
 
     .mobile-slot-list span {
       display: block;
       margin-top: 2px;
-      color: #8f95a5;
+      color: currentColor;
       font-size: 9px;
+      opacity: 0.72;
     }
 
     .mobile-slot-warning {
@@ -11418,8 +11560,8 @@
   }
 
   @keyframes mobileSlotFill {
-    0% { transform: translate(-50%, -50%) scale(0.88); box-shadow: 0 0 0 0 rgba(201, 166, 70, 0.28); }
-    100% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 0 5px rgba(201, 166, 70, 0); }
+    0% { transform: scale(0.88); box-shadow: 0 0 0 0 rgba(201, 166, 70, 0.28); }
+    100% { transform: scale(1); box-shadow: 0 0 0 5px rgba(201, 166, 70, 0); }
   }
 
   @keyframes mobileSheetIn {
