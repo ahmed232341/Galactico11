@@ -22,25 +22,29 @@
   }
 
   function display(value: number) {
-    return value > 0 ? formatIoG(value) : "-";
+    return Number.isFinite(value) && value > 0 ? formatIoG(value) : "—";
   }
 
   function libraLabel(value: number | null) {
     const score = value ?? 0;
-    if (score >= 95) return "Elite Balance";
-    if (score >= 85) return "Well Balanced";
-    if (score >= 70) return "Functional";
-    if (score >= 50) return "Unstable";
-    return "Chaotic";
+    if (score >= 90) return "Elite Consistency";
+    if (score >= 80) return "Well Balanced";
+    if (score >= 70) return "Stable but Uneven";
+    if (score >= 60) return "Fragile Structure";
+    return "Volatile XI";
   }
 
-  function libraTilt(value: number | null) {
+  function libraDescription(value: number | null) {
     const score = value ?? 0;
-    if (score >= 90) return 0;
-    if (score >= 80) return -1;
-    if (score >= 60) return -4;
-    if (score >= 40) return -10;
-    return -16;
+    if (score >= 90) return "Consistent quality across the XI with very few weak links.";
+    if (score >= 80) return "Strong squad consistency with enough balance to survive pressure.";
+    if (score >= 70) return "Useful structure, but some line gaps can still be targeted.";
+    if (score >= 60) return "A fragile squad profile with uneven quality across roles.";
+    return "Stars may be carrying too many weak links.";
+  }
+
+  function percent(value: number | null) {
+    return Math.max(0, Math.min(100, Number(value) || 0));
   }
 
   $: profile = calculateTeamBalance(players, formation, chemistry, positionFit);
@@ -52,6 +56,7 @@
     pointToward(244, 188, $midfieldTween),
     pointToward(56, 188, $defenseTween)
   ].join(" ");
+  $: libraPercent = percent(profile.libraScore);
 </script>
 
 <section class="balance-panel" class:final-analysis={context === "final"} aria-label={context === "final" ? "Final tactical balance" : "Live tactical balance"}>
@@ -69,12 +74,35 @@
   <div class="profile-grid">
     <div class="chart-shell">
       <svg viewBox="0 0 300 240" role="img" aria-label={`Attack ${profile.attack}, midfield ${profile.midfield}, defense ${profile.defense}`}>
+        <defs>
+          <radialGradient id="balance-core" cx="50%" cy="48%" r="62%">
+            <stop offset="0%" stop-color="#c9a646" stop-opacity="0.2" />
+            <stop offset="56%" stop-color="#39e6c9" stop-opacity="0.07" />
+            <stop offset="100%" stop-color="#07080d" stop-opacity="0" />
+          </radialGradient>
+          <linearGradient id="team-fill" x1="60" y1="28" x2="240" y2="198">
+            <stop offset="0%" stop-color="#f1d56d" stop-opacity="0.52" />
+            <stop offset="52%" stop-color="#c9a646" stop-opacity="0.28" />
+            <stop offset="100%" stop-color="#39e6c9" stop-opacity="0.22" />
+          </linearGradient>
+          <filter id="triangle-glow" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="3.5" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+        <rect class="chart-bg" x="20" y="10" width="260" height="214" rx="24" />
+        <ellipse class="chart-glow" cx="150" cy="132" rx="118" ry="92" />
         <polygon class="hex outer" points="150,16 252,74 252,190 150,224 48,190 48,74" />
         <polygon class="hex middle" points="150,55 218,94 218,171 150,194 82,171 82,94" />
         <polygon class="hex inner" points="150,94 184,113 184,152 150,164 116,152 116,113" />
         <line class="axis" x1="150" y1="134" x2="150" y2="28" />
         <line class="axis" x1="150" y1="134" x2="244" y2="188" />
         <line class="axis" x1="150" y1="134" x2="56" y2="188" />
+        <circle class="center-dot" cx="150" cy="134" r="3.5" />
+        <polygon class="team-shadow" points={polygonPoints} />
         <polygon class="team-shape" points={polygonPoints} />
         <circle class="point" cx={150} cy={134 + (28 - 134) * ($attackTween / 100)} r="4" />
         <circle class="point" cx={150 + (244 - 150) * ($midfieldTween / 100)} cy={134 + (188 - 134) * ($midfieldTween / 100)} r="4" />
@@ -90,17 +118,17 @@
       <article>
         <span>Attack</span>
         <strong>{display(profile.attack)}</strong>
-        <div><i style={`width:${profile.attack}%`}></i></div>
+        <div><i style={`width:${percent(profile.attack)}%`}></i></div>
       </article>
       <article>
         <span>Midfield</span>
         <strong>{display(profile.midfield)}</strong>
-        <div><i style={`width:${profile.midfield}%`}></i></div>
+        <div><i style={`width:${percent(profile.midfield)}%`}></i></div>
       </article>
       <article>
         <span>Defense</span>
         <strong>{display(profile.defense)}</strong>
-        <div><i style={`width:${profile.defense}%`}></i></div>
+        <div><i style={`width:${percent(profile.defense)}%`}></i></div>
       </article>
     </div>
   </div>
@@ -132,15 +160,18 @@
         <p>{libraLabel(profile.libraScore)}</p>
       </div>
 
-      <svg viewBox="0 0 300 150" role="img" aria-hidden="true">
-        <path class="scale-base" d="M112 132 H188 M150 38 V132 M126 132 Q150 112 174 132" />
-        <circle class="scale-pivot" cx="150" cy="56" r="7" />
-        <g class="scale-beam" style={`transform: rotate(${libraTilt(profile.libraScore)}deg)`}>
-          <path d="M70 56 H230" />
-          <path d="M82 56 V103 M218 56 V103" />
-          <path d="M55 103 Q82 126 109 103 Z M191 103 Q218 126 245 103 Z" />
-        </g>
-      </svg>
+      <div class="libra-meter" aria-hidden="true">
+        <div class="meter-track">
+          <i style={`width:${libraPercent}%`}></i>
+          <b style={`left:${libraPercent}%`}></b>
+        </div>
+        <div class="meter-labels">
+          <span>Volatile</span>
+          <span>Stable</span>
+          <span>Elite</span>
+        </div>
+        <p>{libraDescription(profile.libraScore)}</p>
+      </div>
     </section>
   {/if}
 
@@ -206,6 +237,7 @@
 
   .chart-shell {
     position: relative;
+    isolation: isolate;
   }
 
   .chart-shell svg {
@@ -215,36 +247,67 @@
     overflow: visible;
   }
 
-  .hex,
-  .axis {
-    fill: none;
-    stroke: #343947;
+  .chart-bg {
+    fill: rgba(4, 6, 12, 0.36);
+    stroke: rgba(201, 166, 70, 0.14);
     stroke-width: 1;
   }
 
-  .middle { opacity: 0.68; }
-  .inner { opacity: 0.42; }
-  .axis { opacity: 0.55; }
+  .chart-glow {
+    fill: url(#balance-core);
+  }
+
+  .hex,
+  .axis {
+    fill: none;
+    stroke: rgba(201, 166, 70, 0.28);
+    stroke-width: 1.15;
+  }
+
+  .outer {
+    stroke: rgba(201, 166, 70, 0.48);
+    filter: drop-shadow(0 5px 16px rgba(0, 0, 0, 0.32));
+  }
+
+  .middle { opacity: 0.72; }
+  .inner { opacity: 0.52; }
+  .axis {
+    opacity: 0.72;
+    stroke: rgba(170, 176, 192, 0.28);
+  }
+
+  .center-dot {
+    fill: rgba(239, 213, 116, 0.72);
+    filter: drop-shadow(0 0 8px rgba(239, 213, 116, 0.36));
+  }
+
+  .team-shadow {
+    fill: rgba(0, 0, 0, 0.22);
+    stroke: transparent;
+    transform: translateY(5px);
+  }
 
   .team-shape {
-    fill: rgba(201, 166, 70, 0.2);
-    stroke: #d2b453;
-    stroke-width: 2.2;
+    fill: url(#team-fill);
+    stroke: #f0d36a;
+    stroke-width: 2.6;
     stroke-linejoin: round;
     transition: points 0.6s ease;
-    filter: drop-shadow(0 5px 14px rgba(201, 166, 70, 0.14));
+    filter: url(#triangle-glow) drop-shadow(0 8px 18px rgba(201, 166, 70, 0.22));
   }
 
   .point {
-    fill: #efd574;
-    stroke: #11131b;
-    stroke-width: 1.5;
+    fill: #fff3a3;
+    stroke: #0b0d14;
+    stroke-width: 1.8;
+    filter: drop-shadow(0 0 7px rgba(239, 213, 116, 0.55));
   }
 
   .label {
-    fill: #aab0c0;
+    fill: #d9dce5;
     font: 800 10px Inter, system-ui, sans-serif;
     text-transform: uppercase;
+    letter-spacing: 0.04em;
   }
 
   .attack { text-anchor: middle; }
@@ -291,15 +354,17 @@
 
   .line-scores article > div {
     grid-column: 1 / -1;
-    height: 3px;
+    height: 4px;
     overflow: hidden;
+    border-radius: 999px;
     background: #282c38;
   }
 
   .line-scores i {
     display: block;
     height: 100%;
-    background: #c9a646;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #806b2f, #c9a646, #efd574);
     transition: width 0.6s ease;
   }
 
@@ -333,14 +398,15 @@
 
   .libra-scale {
     margin-top: 12px;
-    min-height: 148px;
     display: grid;
-    grid-template-columns: minmax(0, 140px) minmax(180px, 1fr);
+    grid-template-columns: minmax(0, 150px) minmax(180px, 1fr);
     align-items: center;
     gap: 14px;
     border: 1px solid rgba(201, 166, 70, 0.24);
     border-radius: 12px;
-    background: linear-gradient(135deg, rgba(201, 166, 70, 0.07), rgba(13, 16, 24, 0.94));
+    background:
+      radial-gradient(circle at 86% 20%, rgba(57, 230, 201, 0.08), transparent 32%),
+      linear-gradient(135deg, rgba(201, 166, 70, 0.08), rgba(13, 16, 24, 0.94));
     padding: 14px 16px;
   }
 
@@ -367,35 +433,60 @@
     font-weight: 750;
   }
 
-  .libra-scale svg {
-    width: 100%;
-    height: 132px;
+  .libra-meter {
+    min-width: 0;
+    display: grid;
+    gap: 9px;
+  }
+
+  .meter-track {
+    position: relative;
+    height: 16px;
     overflow: visible;
+    border: 1px solid rgba(201, 166, 70, 0.3);
+    border-radius: 999px;
+    background:
+      linear-gradient(90deg, rgba(239, 106, 106, 0.28), rgba(228, 191, 85, 0.26), rgba(98, 201, 139, 0.3)),
+      #0b0d14;
+    box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.42);
   }
 
-  .scale-base,
-  .scale-beam path {
-    fill: none;
-    stroke: #c9a646;
-    stroke-width: 3;
-    stroke-linecap: round;
-    stroke-linejoin: round;
+  .meter-track i {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #c9a646, #efd574, #68d391);
+    box-shadow: 0 0 16px rgba(201, 166, 70, 0.26);
+    transition: width 0.65s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  .scale-beam {
-    transform-origin: 150px 56px;
-    transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+  .meter-track b {
+    position: absolute;
+    top: 50%;
+    width: 12px;
+    height: 28px;
+    border: 2px solid #fff3a3;
+    border-radius: 999px;
+    background: #151823;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 14px rgba(239, 213, 116, 0.38);
+    transition: left 0.65s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  .scale-beam path:last-child {
-    fill: rgba(201, 166, 70, 0.14);
-    stroke-width: 2;
+  .meter-labels {
+    display: flex;
+    justify-content: space-between;
+    color: #8f95a5;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
   }
 
-  .scale-pivot {
-    fill: #efd574;
-    stroke: #11131b;
-    stroke-width: 3;
+  .libra-meter p {
+    margin: 0;
+    color: #cbd0dc;
+    font-size: 12px;
+    line-height: 1.45;
   }
 
   .balance-insight p {
@@ -528,11 +619,6 @@
       gap: 10px;
     }
 
-    .libra-scale svg {
-      height: 108px;
-      min-width: 0;
-    }
-
     .libra-copy strong {
       font-size: 28px;
     }
@@ -582,8 +668,5 @@
       text-align: left;
     }
 
-    .libra-scale svg {
-      height: 92px;
-    }
   }
 </style>
