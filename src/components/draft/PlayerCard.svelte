@@ -1,5 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
+  import { formatIoG } from "../../lib/iogFormat";
   import type { Player } from "../../types/Player";
 
   export let player: Player;
@@ -33,6 +34,6 @@
 
   <div class="flex flex-col items-end gap-1 rounded-[1.5rem] bg-[#11131b] px-4 py-3">
     <span class="text-[10px] uppercase tracking-[0.35em] text-slate-500">IoG</span>
-    <strong class="text-2xl text-[#C9A646]">{player.iog}</strong>
+    <strong class="text-2xl text-[var(--accent)]">{formatIoG(player.iog)}</strong>
   </div>
 </button>

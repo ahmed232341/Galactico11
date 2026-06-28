@@ -1,5 +1,6 @@
 <script lang="ts">
   import { players } from "../../data/players";
+  import { formatIoG } from "../../lib/iogFormat";
 
   export let position = "";
 
@@ -23,7 +24,7 @@
         <p>{player.club} • {player.era}</p>
       </div>
 
-      <span class="iog">IoG {player.iog}</span>
+      <span class="iog">IoG {formatIoG(player.iog)}</span>
     </button>
   {/each}
 </div>
@@ -68,7 +69,7 @@
   }
 
   .player:hover {
-    border-color: #00d68f;
+    border-color: var(--accent);
   }
 
   .player p {
@@ -78,7 +79,7 @@
   }
 
   .iog {
-    background: #00d68f;
+    background: var(--accent);
     color: #06120d;
     padding: 0.4rem 0.65rem;
     border-radius: 999px;

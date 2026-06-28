@@ -2,7 +2,10 @@ export interface Player {
   id: number | string;
   name: string;
   club: string;
+  domesticClub?: string;
+  originalClub?: string;
   league: string;
+  domesticLeague?: string;
   competition?: string;
   nation?: string;
   era: string;
@@ -59,7 +62,6 @@ import playersJson from './players.json';
 import clubPlayersJson from './club_players.json';
 import worldCupPlayersJson from './worldcup_2026_players.json';
 import fc26PlayersJson from './fc26_players.json';
-import { fictionalPlayers } from './fictionalPlayers';
 
 const normalizeNationKey = (value: unknown) =>
   String(value ?? '')
@@ -113,6 +115,8 @@ const fc26Players = Array.isArray(fc26PlayersJson)
       const qualifiedNation = getQualifiedNation(player.nation);
       return {
       ...player,
+      domesticClub: player.club,
+      originalClub: player.club,
       club: qualifiedNation ?? player.club,
       league: qualifiedNation ? 'World Cup' : 'ET Mode',
       competition: qualifiedNation ? 'World Cup' : 'ET Mode',
@@ -125,7 +129,7 @@ const fc26Players = Array.isArray(fc26PlayersJson)
 const worldCupPlayers = fc26Players.filter((player) => player.competition === 'World Cup');
 
 const fallbackPlayers: Player[] = [];
-const mergedPlayers = [...statsBombPlayers, ...clubPlayers, ...fc26Players, ...fictionalPlayers];
+const mergedPlayers = [...statsBombPlayers, ...clubPlayers, ...fc26Players];
 
 // Use fallback data only if both imported datasets are empty.
 export const players: Player[] = (mergedPlayers.length ? mergedPlayers : fallbackPlayers) as Player[];
@@ -134,6 +138,5 @@ export const playerCounts = {
   club: clubPlayers.length,
   fc26: fc26Players.length,
   worldCup: worldCupPlayers.length,
-  fictional: fictionalPlayers.length,
   total: mergedPlayers.length,
 };

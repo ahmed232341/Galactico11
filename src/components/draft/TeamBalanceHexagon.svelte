@@ -1,6 +1,7 @@
 <script lang="ts">
   import { cubicOut } from "svelte/easing";
   import { tweened } from "svelte/motion";
+  import { formatIoG } from "../../lib/iogFormat";
   import { calculateTeamBalance, type TeamBalancePlayer } from "../../lib/teamBalance";
 
   export let players: TeamBalancePlayer[] = [];
@@ -21,7 +22,7 @@
   }
 
   function display(value: number) {
-    return value > 0 ? value.toFixed(1) : "-";
+    return value > 0 ? formatIoG(value) : "-";
   }
 
   function libraLabel(value: number | null) {
