@@ -116,7 +116,7 @@
     | "Semifinal Exit"
     | "Runner-up"
     | "World Cup Winner";
-  type TutorialStep = 0 | 1 | 2;
+  type TutorialStep = 0 | 1 | 2 | 3;
 
   type PickedPlayer = DraftOption & {
     slotId: string;
@@ -650,7 +650,8 @@
   const tutorialMessages: Record<TutorialStep, string> = {
     0: "Pick a mode. I’ll judge the XI after the draft.",
     1: "World Cup is pressure football: nation pools, knockout margins, no easy picks.",
-    2: "Invincibles is a season test: stars help, but consistency keeps the run alive."
+    2: "Invincibles is a season test: stars help, but consistency keeps the run alive.",
+    3: "ET Mode is Galactico11’s alien signal challenge. Draft Earth’s strongest XI, survive interference, and face one of five cosmic opponents. Chemistry, Libra, balance, and IoG decide whether Earth survives or the transmission ends."
   };
   const alienOpponents: AlienOpponent[] = [
     {
@@ -689,7 +690,7 @@
       name: "Paradox",
       averageIog: 90,
       threatLevel: "Universal Final Boss",
-      tacticalStyle: "Parallel-universe mirror football",
+      tacticalStyle: "",
       pressure: 12,
       premise: "The opposition is not from this timeline."
     }
@@ -1837,8 +1838,8 @@
     // Bench pool: weighted sampling so it feels like squad depth, not a second Ballon d'Or XI
     const common = shuffle(all.filter((p) => p.adjustedIog < 82)).slice(0, 26);
     const good   = shuffle(all.filter((p) => p.adjustedIog >= 82 && p.adjustedIog < 86)).slice(0, 12);
-    const rare   = shuffle(all.filter((p) => p.adjustedIog >= 86 && p.adjustedIog < 89)).slice(0, 5);
-    const elite  = all.filter((p) => p.adjustedIog >= 89).sort((a, b) => b.adjustedIog - a.adjustedIog).slice(0, 2);
+    const rare   = shuffle(all.filter((p) => p.adjustedIog >= 86 && p.adjustedIog < 88)).slice(0, 4);
+    const elite  = shuffle(all.filter((p) => p.adjustedIog >= 88 && p.adjustedIog < 90)).slice(0, 1);
     const pool = [...common, ...good, ...rare, ...elite].sort((a, b) => b.adjustedIog - a.adjustedIog);
     benchPool = pool;
     if (pool.length === 0) {
@@ -2246,7 +2247,7 @@
   }
 
   function nextPhoebeScene() {
-    if (tutorialStep < 2) {
+    if (tutorialStep < 3) {
       tutorialStep = (tutorialStep + 1) as TutorialStep;
     } else {
       markPhoebeTutorialSeen();
@@ -2717,12 +2718,12 @@
   ];
 
   function outcomeIndex(score: number) {
-    if (score >= 91) return 6;
-    if (score >= 86) return 5;
-    if (score >= 81) return 4;
-    if (score >= 76) return 3;
-    if (score >= 70) return 2;
-    if (score >= 64) return 1;
+    if (score >= 90) return 6;
+    if (score >= 85) return 5;
+    if (score >= 80) return 4;
+    if (score >= 75) return 3;
+    if (score >= 69) return 2;
+    if (score >= 63) return 1;
     return 0;
   }
 
@@ -2820,7 +2821,7 @@
     const baseOutcome = worldCupOutcomeOrder[clamp(baseIndex, 0, worldCupOutcomeOrder.length - 1)] as WorldCupOutcome;
     let boostStages = 0;
     const boostEligible =
-      (squadLibra ?? 0) >= 82 &&
+      (squadLibra ?? 0) >= 80 &&
       avgIogValue >= 70 &&
       chemistryScore >= 48 &&
       fitScore >= 55 &&
@@ -2829,7 +2830,7 @@
       baseIndex < worldCupOutcomeOrder.length - 1;
     const boostRoll = seededUnit([worldCupSimulationSeed, seed, "libra-boost"]);
     if (boostEligible) {
-      const oneStageChance = (squadLibra ?? 0) >= 90 ? 0.88 : 0.68;
+      const oneStageChance = (squadLibra ?? 0) >= 90 ? 0.92 : 0.78;
       if (boostRoll < oneStageChance) boostStages = 1;
       const twoStageRoll = seededUnit([worldCupSimulationSeed, seed, "libra-miracle"]);
       if (
@@ -3051,7 +3052,7 @@
     const lineSpread = lineScores.length ? Math.max(...lineScores) - Math.min(...lineScores) : 18;
     const weakestScore = Math.min(...roster.map((player) => player.adjustedIog));
     const riskPenalty = formationRiskScore(formation);
-    const modeDifficulty = draftMode === "invinciblesClub" ? 1.2 : 3.8;
+    const modeDifficulty = draftMode === "invinciblesClub" ? 0.4 : 3.8;
     const strength =
       squadAverage * 0.44 +
       squadLibra * 0.2 +
@@ -3929,7 +3930,7 @@
         stage: "Threat Analysis",
         opponent: opponent.name,
         manOfTheMatch: match.keyPlayer,
-        tacticalAnalysis: `${opponent.tacticalStyle}. Survival chance: ${match.survivalChance}%. ${match.tacticalNote}`
+        tacticalAnalysis: `Survival chance: ${match.survivalChance}%. ${match.tacticalNote}`
       },
       {
         id: "et-first-half",
@@ -4633,7 +4634,7 @@
         <button
           class="mode-card group overflow-hidden rounded-lg border border-yellow-500/30 bg-white/[0.04] text-left transition-all duration-300 hover:-translate-y-1 hover:border-yellow-400/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
           class:tutorial-highlight={showPhoebeTutorial && tutorialStep === 1}
-          class:tutorial-dim={showPhoebeTutorial && tutorialStep === 2}
+          class:tutorial-dim={showPhoebeTutorial && (tutorialStep === 2 || tutorialStep === 3)}
           on:click={() => chooseTutorialMode("worldcup")}
           aria-label="Choose World Cup 2026 mode"
         >
@@ -4645,19 +4646,20 @@
           <div class="mode-card-content">
             <strong class="text-white">World Cup 2026</strong>
             <span class="mode-badge">Realistic</span>
-            <em>Build a nation’s dream XI. Survive the tournament.</em>
+            <em>Build a nation’s XI. Survive the tournament.</em>
             <div class="mode-preview">
               <span>Nation pools</span>
               <span>Knockouts</span>
               <span>Pressure picks</span>
             </div>
+            <span class="mode-select-label">Select</span>
           </div>
         </button>
 
         <button
           class="mode-card group overflow-hidden rounded-lg border border-yellow-500/30 bg-white/[0.04] text-left transition-all duration-300 hover:-translate-y-1 hover:border-yellow-400/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
           class:tutorial-highlight={showPhoebeTutorial && tutorialStep === 2}
-          class:tutorial-dim={showPhoebeTutorial && tutorialStep === 1}
+          class:tutorial-dim={showPhoebeTutorial && (tutorialStep === 1 || tutorialStep === 3)}
           on:click={() => chooseTutorialMode("invinciblesClub")}
           aria-label="Choose Invincibles Mode"
         >
@@ -4669,32 +4671,33 @@
           <div class="mode-card-content">
             <strong class="text-white">Invincibles Mode</strong>
             <span class="mode-badge">Club Season</span>
-            <em>Draft a club side and chase an unbeaten season.</em>
+            <em>Draft a club side. Chase an unbeaten season.</em>
             <div class="mode-preview">
               <span>38 matches</span>
               <span>Streak meter</span>
               <span>Title pressure</span>
             </div>
+            <span class="mode-select-label">Select</span>
           </div>
         </button>
 
         <button
           class="mode-card et-mode-card group overflow-hidden rounded-lg border border-yellow-500/30 bg-white/[0.04] text-left transition-all duration-300 hover:-translate-y-1 hover:border-yellow-400/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
+          class:tutorial-highlight={showPhoebeTutorial && tutorialStep === 3}
+          class:tutorial-dim={showPhoebeTutorial && (tutorialStep === 1 || tutorialStep === 2)}
           on:click={openEtMode}
           aria-label="Choose ET Mode"
         >
-          <div class="mode-card-image et-card-visual" aria-hidden="true">
-            <img src="/alien.png" alt="" />
-          </div>
           <div class="mode-card-content">
             <strong class="text-white">ET Mode</strong>
             <span class="mode-badge">Signature Mode</span>
-            <em>Build Earth’s strongest XI. Save the planet.</em>
+            <em>Build Earth’s XI. Survive the signal.</em>
             <div class="mode-preview et-preview">
               <span>Free draft</span>
               <span>Alien threat</span>
               <span>Superteam chaos</span>
             </div>
+            <span class="mode-select-label">Select</span>
           </div>
         </button>
       </div>
@@ -5264,9 +5267,9 @@
         {@const impact = calculateBenchImpact(benchCandidates)}
         <div class="bench-live-impact">
           <span>Bench Strength <strong>{impact.strength}%</strong></span>
-          <span>Flexibility <strong>{impact.flexibility}</strong></span>
+          <span>Tactical Flexibility <strong>{impact.flexibility}</strong></span>
           <span>Late Threat <strong>+{impact.lateThreat}%</strong></span>
-          <span>Fatigue Guard <strong>+{impact.fatigue}%</strong></span>
+          <span>Fatigue Resistance <strong>+{impact.fatigue}%</strong></span>
         </div>
       {/if}
 
@@ -5462,7 +5465,6 @@
               {#if draftMode === "et"}
                 <div><span>Opponent IoG</span><strong>{formatIoG(predictedEtAlienMatch.opponent.averageIog)}</strong></div>
                 <div><span>Threat Level</span><strong>{predictedEtAlienMatch.opponent.threatLevel}</strong></div>
-                <div><span>Style</span><strong>{predictedEtAlienMatch.opponent.tacticalStyle}</strong></div>
                 <div><span>Survival Chance</span><strong
                   class:record-low={predictedEtAlienMatch.resultTone === "low"}
                   class:record-medium={predictedEtAlienMatch.resultTone === "medium"}
@@ -5731,7 +5733,6 @@
             <h2>Alien Threat Analysis</h2>
             <div class="stat-cards-grid">
               <div class="stat-card"><span>Threat Level</span><strong>{predictedEtAlienMatch.opponent.threatLevel}</strong></div>
-              <div class="stat-card"><span>Tactical Style</span><strong>{predictedEtAlienMatch.opponent.tacticalStyle}</strong></div>
               <div class="stat-card"><span>Key Player</span><strong>{predictedEtAlienMatch.keyPlayer}</strong></div>
               <div class="stat-card"><span>Team Balance</span><strong>{finalBalanceProfile.status}</strong></div>
             </div>
@@ -6108,6 +6109,8 @@
             {:else if tutorialStep === 1}
               <button class="primary" on:click={nextPhoebeScene}>Next</button>
             {:else if tutorialStep === 2}
+              <button class="primary" on:click={nextPhoebeScene}>Next</button>
+            {:else if tutorialStep === 3}
               <button class="primary" on:click={nextPhoebeScene}>Next</button>
             {/if}
           </div>
@@ -7129,26 +7132,6 @@
     gap: 32px;
   }
 
-  .mode-card.et-mode-card .mode-card-image.et-card-visual {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    overflow: visible;
-    background:
-      radial-gradient(circle at 50% 52%, rgba(57, 230, 201, 0.22), transparent 34%),
-      radial-gradient(circle at 50% 50%, transparent 0 58px, rgba(57, 230, 201, 0.32) 59px 60px, transparent 61px),
-      linear-gradient(160deg, #07120f 0%, #0a1d18 100%);
-  }
-
-  .mode-card.et-mode-card .et-card-visual img {
-    width: min(118px, 62%);
-    height: min(118px, 82%);
-    object-fit: contain;
-    filter: drop-shadow(0 0 18px rgba(57, 230, 201, 0.38)) drop-shadow(0 0 46px rgba(57, 230, 201, 0.18));
-    opacity: 0.9;
-  }
-
   .mode-card.et-mode-card:hover {
     border-color: rgba(57, 230, 201, 0.72);
     box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35), 0 0 30px rgba(57, 230, 201, 0.16);
@@ -7297,12 +7280,31 @@
 
   .mode-card-content em {
     display: block;
+    max-width: 260px;
     margin-top: 14px;
-    color: #f6f0d2;
-    font-size: 18px;
+    color: rgba(226, 232, 240, 0.72);
+    font-size: clamp(0.9rem, 1vw, 1rem);
     font-style: normal;
+    font-weight: 500;
+    line-height: 1.35;
+  }
+
+  .mode-select-label {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: auto !important;
+    margin-top: 22px !important;
+    border: 1px solid rgba(201, 166, 70, 0.35);
+    border-radius: 999px;
+    background: rgba(201, 166, 70, 0.1);
+    color: #f3e4a3 !important;
+    padding: 9px 14px;
+    font-size: 10px !important;
     font-weight: 900;
-    line-height: 1.25;
+    letter-spacing: 0.12em;
+    line-height: 1 !important;
+    text-transform: uppercase;
   }
 
   .mode-preview {
@@ -7330,6 +7332,17 @@
   .et-preview span {
     border-color: rgba(57, 230, 201, 0.28);
     background: rgba(57, 230, 201, 0.08);
+  }
+
+  .mode-card.et-mode-card {
+    justify-content: center;
+  }
+
+  .mode-card.et-mode-card .mode-card-content {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
 
   .mode-option {
@@ -7524,26 +7537,33 @@
   }
 
   .bench-live-impact {
-    display: flex;
-    gap: 18px;
-    align-items: center;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    align-items: stretch;
     border: 1px solid #282c38;
     border-radius: 12px;
     background: #0f1119;
-    padding: 10px 16px;
+    padding: 10px;
     margin-bottom: 18px;
-    flex-wrap: wrap;
   }
 
   .bench-live-impact span {
+    min-width: 0;
+    border: 1px solid rgba(201, 166, 70, 0.16);
+    border-radius: 10px;
+    background: rgba(201, 166, 70, 0.045);
+    padding: 10px;
     color: #6b7180;
     font-size: 11px;
     font-weight: 750;
     letter-spacing: 0.04em;
+    line-height: 1.25;
   }
 
   .bench-live-impact span strong {
-    margin-left: 5px;
+    display: block;
+    margin: 5px 0 0;
     color: #efd574;
     font-size: 13px;
   }
@@ -11700,7 +11720,7 @@
     }
 
     .mode-card-content {
-      padding: 6px 12px 52px;
+      padding: 6px 12px 12px;
     }
 
     .mode-grid .mode-card .mode-card-content strong {
@@ -11719,19 +11739,13 @@
     }
 
     .mode-grid .mode-card::after {
-      content: "Select";
-      position: absolute;
-      left: 20px;
-      right: 20px;
-      bottom: 14px;
+      content: none;
+    }
+
+    .mode-select-label {
+      margin-top: 16px !important;
       min-height: 34px;
-      display: grid;
-      place-items: center;
-      border-radius: 999px;
-      background: #c9a646;
-      color: #090a0f;
-      font-size: 12px;
-      font-weight: 950;
+      width: 100% !important;
     }
 
     .formation-grid {
@@ -11857,10 +11871,7 @@
     }
 
     .mobile-live-balance {
-      display: block;
-      margin-top: 16px;
-      padding-top: 14px;
-      border-top: 1px solid #1e2230;
+      display: none;
     }
 
     .draft-grid .universe-grid {
@@ -11951,15 +11962,15 @@
     }
 
     .player-list {
-      max-height: min(53svh, 520px);
+      max-height: min(58svh, 560px);
       gap: 6px;
       padding-right: 0;
     }
 
     .player-card {
-      min-height: 74px;
+      min-height: 68px;
       border-radius: 14px;
-      padding: 8px 10px;
+      padding: 7px 10px;
     }
 
     .player-card:hover {
@@ -11979,7 +11990,7 @@
     }
 
     .player-main strong {
-      font-size: 21px;
+      font-size: 17px;
       line-height: 1.18;
     }
 
@@ -12993,7 +13004,7 @@
     }
 
     .player-list {
-      max-height: 390px;
+      max-height: min(58svh, 500px);
     }
 
     .pitch,
@@ -13176,7 +13187,9 @@
     }
 
     .mode-card-content em {
-      font-size: 15px;
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.35;
     }
 
     .mode-preview {
@@ -13207,6 +13220,21 @@
 
     .bench-impact-grid {
       gap: 8px;
+    }
+
+    .bench-live-impact {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      padding: 8px;
+    }
+
+    .bench-live-impact span {
+      padding: 9px;
+      font-size: 9px;
+    }
+
+    .bench-live-impact span strong {
+      font-size: 12px;
     }
 
     .bench-impact-grid article {
