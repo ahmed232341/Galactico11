@@ -9931,35 +9931,65 @@
 
   @media (max-width: 760px) {
     .play-level-stage {
-      min-height: calc(100vh - 20px);
-      padding: 16px;
+      min-height: 0;
+      display: block;
+      padding: 14px;
       border-radius: 18px;
     }
 
     .play-level-header {
-      align-items: stretch;
-      gap: 12px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: start;
+      gap: 10px;
+    }
+
+    .play-level-header .muted {
+      margin-bottom: 0;
     }
 
     .play-level-header h1 {
-      font-size: clamp(28px, 9vw, 38px);
+      margin-bottom: 6px;
+      font-size: clamp(26px, 8vw, 34px);
     }
 
     .play-level-header .secondary {
-      min-width: 104px;
-      padding-inline: 12px;
-      font-size: 12px;
+      width: auto;
+      min-width: 0;
+      min-height: 34px;
+      border-radius: 999px;
+      padding: 7px 10px;
+      font-size: 11px;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .play-level-progress {
+      height: 4px;
+      margin-top: 12px;
     }
 
     .play-level-intro,
     .play-level-card {
-      margin: 22px 0;
-      padding: 18px;
+      margin: 12px 0 0;
+      padding: 16px;
       border-radius: 18px;
     }
 
     .play-level-intro strong {
-      font-size: clamp(30px, 12vw, 52px);
+      margin-top: 7px;
+      font-size: clamp(28px, 10vw, 44px);
+    }
+
+    .play-level-intro p {
+      margin: 12px auto 16px;
+      line-height: 1.5;
+    }
+
+    .play-level-intro .primary {
+      min-height: 40px;
+      padding: 10px 14px;
+      font-size: 12px;
     }
 
     .play-level-main {
@@ -10011,10 +10041,22 @@
 
     .play-level-actions .primary,
     .play-level-actions .secondary {
-      flex: 1;
       min-height: 42px;
       padding: 10px;
       font-size: 12px;
+    }
+
+    .play-level-actions .primary {
+      flex: 1 1 auto;
+    }
+
+    .play-level-actions .secondary {
+      flex: 0 0 auto;
+      min-height: 34px;
+      border-radius: 999px;
+      padding: 8px 11px;
+      font-size: 11px;
+      white-space: nowrap;
     }
 
     .simulation-content {
