@@ -128,6 +128,10 @@
     alternatives?: string[];
   };
 
+  type BenchSub = DraftOption & {
+    benchRole: "Backup GK" | "Defensive Cover" | "Midfield Control" | "Attacking Wildcard" | "Utility Player";
+  };
+
   type ClubSeasonRecord = {
     record: string;
     points: number;
@@ -527,7 +531,7 @@
   let classicUniverses: Universe[] = fallbackUniverses;
   let universePlayerIndex = new Map<string, Player[]>();
 
-  let screen: "menu" | "loading" | "mode" | "etIntro" | "clubFormat" | "formation" | "draft" | "analysis" | "playLevel" | "simulation" | "record" | "libra" | "result" = "menu";
+  let screen: "menu" | "loading" | "mode" | "etIntro" | "clubFormat" | "formation" | "draft" | "bench" | "analysis" | "playLevel" | "simulation" | "record" | "libra" | "verdict" | "result" = "menu";
   let formation = "4-3-3";
   let draftMode: "worldcup" | "club" | "et" | "invinciblesClub" = "worldcup";
   let clubFormat: ClubFormat = "league";
@@ -536,6 +540,11 @@
   let universe = worldCupUniverses[0] ?? classicUniverses[0] ?? universes[0];
 
   let picked: PickedPlayer[] = [];
+  let bench: BenchSub[] = [];
+  let benchCandidates: BenchSub[] = [];
+  let benchPool: DraftOption[] = [];
+  let benchSearch = "";
+  let lastAssignedPlayer: PickedPlayer | null = null;
   let selectedPlayer: DraftOption | null = null;
   let selectedSlotId = "";
 
@@ -550,24 +559,22 @@
   let goldenPickNumber = 0;
   let revealedMysteryPlayerIds: string[] = [];
   let lastPickLabel = "";
+  let pickChips: Array<{ text: string; tone: "good" | "warn" | "info" | "bad" }> = [];
+  let pickChipTimer: ReturnType<typeof setTimeout> | null = null;
+  let lastAssignedSlotId = "";
+  let assignedPulseTimer: ReturnType<typeof setTimeout> | null = null;
   let options: DraftOption[] = [];
   let seenPlayerIds = new Set<string>();
   let rejectedPlayerIds = new Set<string>();
   let usedInvinciblesClubs = new Set<string>();
   let showDraftTimeline = false;
-  let showTeamCompare = false;
   let worldCupPoolProfile: WorldCupPoolProfile = "balanced";
   let worldCupSimulationSeed = randomInt(1000, 999999);
-  const compareBenchmarks = {
-    average: { iog: 74, chemistry: 55, fit: 62, libra: 60 },
-    elite: { iog: 88, chemistry: 78, fit: 85, libra: 88 }
-  };
   let visibleOptionLimit = 80;
   let phoebeTutorialSeen = false;
   let showPhoebeTutorial = false;
   let tutorialStep: TutorialStep = 0;
   let tutorialAttackPoolActive = false;
-  let comparePlayerIds: string[] = [];
   let showShareModal = false;
   let shareStatus = "";
   let loadingPercent = 0;
@@ -578,6 +585,8 @@
   let simulatedDraws = 0;
   let simulatedLosses = 0;
   let simulationComplete = false;
+  let finalVerdictStepIndex = 0;
+  let finalVerdictTimer: ReturnType<typeof setTimeout> | null = null;
   let etSignalSearching = false;
   let etSignalText = "SEARCHING HUMANITY DATABASE";
   const etSignalMessages = [
@@ -585,6 +594,13 @@
     "SIGNAL LOCKING",
     "PLAYER POOL DECRYPTING",
     "GALACTICO11 SIGNAL FOUND"
+  ];
+  const finalVerdictSteps = [
+    "Analyzing XI...",
+    "Calculating IoG...",
+    "Testing Libra...",
+    "Simulating pressure...",
+    "Final Verdict..."
   ];
 
   // PLAY LEVEL (cinematic tournament + managerial checkpoints)
@@ -632,9 +648,9 @@
 
   let simulationTimer: ReturnType<typeof setInterval> | null = null;
   const tutorialMessages: Record<TutorialStep, string> = {
-    0: "Choose your attack wisely. Remember... Every Pick Has A Consequence.",
-    1: "World Cup 2026 is the realistic mode. You draft from qualified nations, real squads and international-style football logic. Every round gives you choices shaped by nation pools, position needs and tournament pressure. Pick carefully because balance matters more than collecting famous names.",
-    2: "Invincibles Mode is the club football season challenge. You'll build an XI for a 38-match domestic campaign where balance, depth and consistency matter as much as star power."
+    0: "Pick a mode. I’ll judge the XI after the draft.",
+    1: "World Cup is pressure football: nation pools, knockout margins, no easy picks.",
+    2: "Invincibles is a season test: stars help, but consistency keeps the run alive."
   };
   const alienOpponents: AlienOpponent[] = [
     {
@@ -771,6 +787,11 @@
   $: teamIog = picked.length ? Math.round(picked.reduce((sum, p) => sum + p.adjustedIog, 0) / picked.length) : 0;
   $: avgIog = picked.length ? (picked.reduce((sum, p) => sum + p.adjustedIog, 0) / picked.length).toFixed(1) : "0.0";
   $: displayAvgIog = formatIoG(avgIog);
+  $: benchImpact = calculateBenchImpact(bench);
+  $: filteredBenchPool = benchSearch.trim()
+    ? benchPool.filter((p) => p.name.toLowerCase().includes(benchSearch.toLowerCase()))
+    : benchPool;
+  $: pickReaction = lastAssignedPlayer ? getPickReaction(lastAssignedPlayer) : "";
   $: bestPlayer = picked.slice().sort((a, b) => b.adjustedIog - a.adjustedIog)[0];
   $: weakestPlayer = picked.slice().sort((a, b) => a.adjustedIog - b.adjustedIog)[0];
   $: captain = bestPlayer;
@@ -1316,31 +1337,6 @@
     ];
   }
 
-  function toggleCompare(player: DraftOption, event?: Event) {
-    event?.stopPropagation();
-    const id = String(player.id);
-    if (comparePlayerIds.includes(id)) {
-      comparePlayerIds = comparePlayerIds.filter((item) => item !== id);
-      return;
-    }
-    comparePlayerIds = [...comparePlayerIds.slice(-1), id];
-  }
-
-  function comparisonPlayers() {
-    return comparePlayerIds
-      .map((id) => options.find((player) => String(player.id) === id))
-      .filter(Boolean) as DraftOption[];
-  }
-
-  function comparisonDelta(player: DraftOption) {
-    const current = [...picked, { ...player, slotId: getCompatibleSlots(player)[0]?.id ?? "", assignedPosition: getCompatibleSlots(player)[0]?.label ?? getPositions(player)[0] ?? "CM", penalty: 0 }];
-    return {
-      chemistry: getChemistry(current) - chemistry,
-      libra: (calculateLibraScore(current, { formation, chemistry: getChemistry(current), positionFit: getPositionFit(current) }) ?? 0) - (libraScore ?? 0),
-      slot: eligibleSlotLabels(player)[0] ?? "-"
-    };
-  }
-
   function initials(name: string) {
     return name
       .split(" ")
@@ -1497,6 +1493,7 @@
       if (draftMode === "invinciblesClub") return `Invincibles • ${selectedInvinciblesConfig.shortLabel} • ${picked.length}/11 selected`;
       return `${currentUniverseTitle} • ${picked.length}/11 selected`;
     }
+    if (screen === "bench") return "Bench Round";
     return "Galactico11";
   }
 
@@ -1755,6 +1752,239 @@
       emergency: false,
       slotCount
     };
+  }
+
+  function benchRoleMatches(player: Player, roles: string[]) {
+    const positions = getPositions(player);
+    return positions.some((position) => compatibleSlotRoles(position).some((role) => roles.includes(role)) || roles.includes(normalizePosition(position)));
+  }
+
+  function bestBenchCandidate(role: BenchSub["benchRole"], roles: string[], selected: Set<string>) {
+    const candidates = availableModePlayers()
+      .filter((player) => !selected.has(String(player.id)) && benchRoleMatches(player, roles))
+      .map((player) => ({ ...toOption(player), benchRole: role }) as BenchSub)
+      .sort((a, b) => b.adjustedIog - a.adjustedIog);
+
+    const pick = candidates[0];
+    if (pick) selected.add(String(pick.id));
+    return pick;
+  }
+
+  function buildBenchCandidates(): BenchSub[] {
+    const selected = new Set([...picked.map((player) => String(player.id)), ...bench.map((player) => String(player.id))]);
+    const roles: Array<{ label: BenchSub["benchRole"]; positions: string[] }> = [
+      { label: "Backup GK", positions: ["GK"] },
+      { label: "Defensive Cover", positions: ["CB", "RB", "LB", "RWB", "LWB", "CDM"] },
+      { label: "Midfield Control", positions: ["CDM", "CM", "CAM"] },
+      { label: "Attacking Wildcard", positions: ["ST", "LW", "RW", "CAM"] },
+      { label: "Utility Player", positions: ["RB", "LB", "CM", "RM", "LM", "RW", "LW"] }
+    ];
+
+    return roles
+      .map((role) => bestBenchCandidate(role.label, role.positions, selected))
+      .filter(Boolean) as BenchSub[];
+  }
+
+  function calculateBenchImpact(subs: BenchSub[]) {
+    if (!subs.length) {
+      return {
+        strength: 0,
+        flexibility: "Optional" as const,
+        lateThreat: 0,
+        fatigue: 0,
+        note: "No bench selected. The XI must survive without a safety net."
+      };
+    }
+
+    const avg = subs.reduce((sum, p) => sum + p.adjustedIog, 0) / subs.length;
+    const filled = subs.length;
+    const roleCoverage = new Set(subs.map((p) => p.benchRole)).size;
+    const attIog = subs.find((p) => p.benchRole === "Attacking Wildcard")?.adjustedIog ?? 0;
+    const defIog = subs.find((p) => ["Backup GK", "Defensive Cover"].includes(p.benchRole))?.adjustedIog ?? 0;
+
+    // Strength: IoG 70→24%, 78→50%, 84→69%, 90→88%
+    const strength = Math.round(clamp((avg - 65) * 3.2, 0, 100));
+
+    // Late threat: capped at 20%
+    const lateThreat = Math.round(clamp(Math.max(0, (Math.max(attIog, avg) - 70) * 0.88), 0, 20));
+
+    // Fatigue: filled slots + role coverage + defensive depth, capped at 28%
+    const fatigue = Math.round(clamp(filled * 3.2 + roleCoverage * 1.6 + defIog * 0.055, 0, 28));
+
+    const flexibility = roleCoverage >= 5 ? "High" : roleCoverage >= 3 ? "Medium" : "Low";
+
+    const note = strength >= 72
+      ? "Your bench gives the XI a second plan. Late-game pressure becomes survivable."
+      : strength >= 48
+        ? "Useful options exist, but the bench lacks coverage in key zones."
+        : "The starters carry the project. One injury or extra-time spell could expose the bench.";
+
+    return { strength, flexibility, lateThreat, fatigue, note };
+  }
+
+  const benchRoleSlots: Array<{ role: BenchSub["benchRole"]; label: string; positions: string[] }> = [
+    { role: "Backup GK", label: "GK", positions: ["GK"] },
+    { role: "Defensive Cover", label: "DEF", positions: ["CB", "RB", "LB", "RWB", "LWB", "CDM"] },
+    { role: "Midfield Control", label: "MID", positions: ["CDM", "CM", "CAM", "LM", "RM"] },
+    { role: "Attacking Wildcard", label: "ATT", positions: ["ST", "CF", "LW", "RW", "CAM"] },
+    { role: "Utility Player", label: "FLEX", positions: [] }
+  ];
+
+  function startBenchRound() {
+    benchCandidates = [];
+    benchSearch = "";
+    const all = availableModePlayers().map((p) => toOption(p));
+    // Bench pool: weighted sampling so it feels like squad depth, not a second Ballon d'Or XI
+    const common = shuffle(all.filter((p) => p.adjustedIog < 82)).slice(0, 26);
+    const good   = shuffle(all.filter((p) => p.adjustedIog >= 82 && p.adjustedIog < 86)).slice(0, 12);
+    const rare   = shuffle(all.filter((p) => p.adjustedIog >= 86 && p.adjustedIog < 89)).slice(0, 5);
+    const elite  = all.filter((p) => p.adjustedIog >= 89).sort((a, b) => b.adjustedIog - a.adjustedIog).slice(0, 2);
+    const pool = [...common, ...good, ...rare, ...elite].sort((a, b) => b.adjustedIog - a.adjustedIog);
+    benchPool = pool;
+    if (pool.length === 0) {
+      startPostDraftAnalysis();
+      return;
+    }
+    screen = "bench";
+  }
+
+  function benchRoleForPlayer(player: DraftOption): BenchSub["benchRole"] {
+    const pos = getPositions(player).map((p) => normalizePosition(p));
+    const isGK = pos.includes("GK");
+    const taken = new Set(benchCandidates.map((c) => c.benchRole));
+
+    if (isGK) {
+      // GK goes to GK slot, then FLEX, then any remaining (never outfield-specific slots)
+      if (!taken.has("Backup GK")) return "Backup GK";
+      if (!taken.has("Utility Player")) return "Utility Player";
+      return benchRoleSlots.find((s) => !taken.has(s.role))?.role ?? "Utility Player";
+    }
+
+    // Outfield: try best-matching specific slot (skip GK slot always)
+    for (const slot of benchRoleSlots) {
+      if (slot.role === "Backup GK") continue;
+      if (taken.has(slot.role)) continue;
+      if (slot.positions.length === 0 || slot.positions.some((p) => pos.includes(p))) return slot.role;
+    }
+
+    // No position-matched slot — use FLEX if free, then any non-GK slot
+    if (!taken.has("Utility Player")) return "Utility Player";
+    const nonGkFree = benchRoleSlots.find((s) => s.role !== "Backup GK" && !taken.has(s.role));
+    return nonGkFree?.role ?? "Utility Player";
+  }
+
+  function addToBench(player: DraftOption) {
+    if (benchCandidates.length >= 5) return;
+    const role = benchRoleForPlayer(player);
+    benchCandidates = [...benchCandidates, { ...player, benchRole: role }];
+    benchPool = benchPool.filter((p) => String(p.id) !== String(player.id));
+  }
+
+  function removeFromBench(index: number) {
+    const removed = benchCandidates[index];
+    if (!removed) return;
+    benchCandidates = benchCandidates.filter((_, i) => i !== index);
+    benchPool = [{ ...removed }, ...benchPool].sort((a, b) => b.adjustedIog - a.adjustedIog);
+  }
+
+  function acceptBench() {
+    bench = [...benchCandidates];
+    startPostDraftAnalysis();
+  }
+
+  function skipBench() {
+    bench = [];
+    startPostDraftAnalysis();
+  }
+
+  function getPickReaction(player: PickedPlayer) {
+    const role = normalizePosition(player.assignedPosition);
+    if (player.mysteryPick) return "Hidden pick secured. Phoebe will reveal the identity later.";
+    if (role === "GK" || ["CB", "LB", "RB", "LWB", "RWB"].includes(role)) return `Defense stabilised by ${player.assignedPosition}. Watch the triangle pull backward.`;
+    if (["CM", "CDM", "CAM", "LM", "RM"].includes(role)) return "Midfield pressure absorbed. Libra now matters more than star power.";
+    return "Attack upgraded. Now protect chemistry before the XI tilts too far forward.";
+  }
+
+  function signedDecimal(value: number, suffix = "") {
+    const rounded = Math.round(value * 10) / 10;
+    return `${rounded > 0 ? "+" : ""}${rounded.toFixed(Math.abs(rounded) >= 10 ? 0 : 1)}${suffix}`;
+  }
+
+  function signedWhole(value: number, suffix = "") {
+    const rounded = Math.round(value);
+    return `${rounded > 0 ? "+" : ""}${rounded}${suffix}`;
+  }
+
+  function lineForAssignedPosition(position: string) {
+    const role = normalizePosition(position);
+    if (["ST", "CF", "SS", "LW", "RW"].includes(role)) return "attack";
+    if (["CM", "CDM", "CAM", "LM", "RM"].includes(role)) return "midfield";
+    if (["GK", "CB", "LB", "RB", "LWB", "RWB"].includes(role)) return "defense";
+    return "attack";
+  }
+
+  function balanceDeltaChip(line: "attack" | "midfield" | "defense", delta: number) {
+    const labels = { attack: "Attack", midfield: "Midfield", defense: "Defense" };
+    if (Math.abs(delta) >= 0.3) {
+      return {
+        text: `${signedDecimal(delta)} ${labels[line]}`,
+        tone: delta >= 0 ? "good" as const : "warn" as const
+      };
+    }
+
+    if (line === "defense") return { text: "Defense still exposed", tone: "warn" as const };
+    if (line === "midfield") return { text: "Midfield stabilized", tone: "info" as const };
+    return { text: "Attack shape improved", tone: "info" as const };
+  }
+
+  function showPickChips(player: PickedPlayer, prevPicked: PickedPlayer[]) {
+    if (pickChipTimer) clearTimeout(pickChipTimer);
+    const chips: typeof pickChips = [];
+    const newPicked = [...prevPicked, player];
+    const prevChemistry = getChemistry(prevPicked);
+    const nextChemistry = getChemistry(newPicked);
+    const prevFit = getPositionFit(prevPicked);
+    const nextFit = getPositionFit(newPicked);
+    const previousBalance = calculateTeamBalance(prevPicked, formation, prevChemistry, prevFit);
+    const nextBalance = calculateTeamBalance(newPicked, formation, nextChemistry, nextFit);
+    const line = lineForAssignedPosition(player.assignedPosition);
+    const lineDelta = nextBalance[line] - previousBalance[line];
+    const chemistryDelta = nextChemistry - prevChemistry;
+    const prevLibra = previousBalance.libraScore ?? 0;
+    const nextLibra = nextBalance.libraScore ?? 0;
+    const libraDelta = nextLibra - prevLibra;
+    const lineValues = [nextBalance.attack, nextBalance.midfield, nextBalance.defense].filter((value) => value > 0);
+    const spread = lineValues.length === 3 ? Math.max(...lineValues) - Math.min(...lineValues) : 100;
+
+    chips.push(balanceDeltaChip(line, lineDelta));
+
+    if (Math.abs(chemistryDelta) >= 2) {
+      chips.push({
+        text: `${signedWhole(chemistryDelta, "%")} Chemistry`,
+        tone: chemistryDelta >= 0 ? "good" : "warn"
+      });
+    }
+
+    if (newPicked.length >= 2 && Math.abs(libraDelta) >= 1) {
+      chips.push({
+        text: `Libra ${signedWhole(libraDelta)}`,
+        tone: libraDelta >= 0 ? "good" : (libraDelta <= -4 ? "bad" : "warn")
+      });
+    } else if (newPicked.length >= 2 && nextLibra >= 80) {
+      chips.push({ text: "Consistency improved", tone: "good" });
+    }
+
+    if (spread <= 7 && lineValues.length === 3) {
+      chips.push({ text: "Shape becoming balanced", tone: "good" });
+    } else if (spread >= 18 && newPicked.length >= 5) {
+      chips.push({ text: "XI becoming top-heavy", tone: "warn" });
+    }
+
+    const weakestPlayerNow = newPicked.slice().sort((a, b) => a.adjustedIog - b.adjustedIog)[0];
+    if (weakestPlayerNow && weakestPlayerNow.adjustedIog < 68) chips.push({ text: `Weak Link: ${weakestPlayerNow.assignedPosition}`, tone: "bad" });
+
+    pickChips = chips.slice(0, 3);
+    pickChipTimer = setTimeout(() => { pickChips = []; }, 2400);
   }
 
   function takeUnique(source: DraftOption[], selected: DraftOption[], count: number) {
@@ -2057,6 +2287,17 @@
     if (simulationTimer) clearInterval(simulationTimer);
     simulationTimer = null;
     picked = [];
+    bench = [];
+    benchCandidates = [];
+    benchPool = [];
+    benchSearch = "";
+    pickChips = [];
+    if (pickChipTimer) { clearTimeout(pickChipTimer); pickChipTimer = null; }
+    if (assignedPulseTimer) { clearTimeout(assignedPulseTimer); assignedPulseTimer = null; }
+    lastAssignedSlotId = "";
+    if (finalVerdictTimer) { clearTimeout(finalVerdictTimer); finalVerdictTimer = null; }
+    finalVerdictStepIndex = 0;
+    lastAssignedPlayer = null;
     selectedPlayer = null;
     selectedSlotId = "";
     options = [];
@@ -2131,7 +2372,7 @@
   }
 
   function confirmModeNavigation() {
-    if (["draft", "analysis", "playLevel", "simulation", "record", "libra", "result"].includes(screen)) {
+    if (["draft", "bench", "analysis", "playLevel", "simulation", "record", "libra", "result"].includes(screen)) {
       return window.confirm("Changing mode will reset the current draft. Continue?");
     }
     return true;
@@ -2275,7 +2516,7 @@
 
   function spinUniverse(manual = false, excludeKey = "") {
     if (picked.length >= 11) {
-      startPostDraftAnalysis();
+      startBenchRound();
       return;
     }
 
@@ -2381,10 +2622,19 @@
 
     if (draftMode === "et" || draftMode === "invinciblesClub") rememberRejectedOptions(String(selectedPlayer.id));
 
+    const prevPicked = [...picked];
     picked = [
       ...picked,
       assignedPlayer
     ];
+    lastAssignedPlayer = assignedPlayer;
+    lastAssignedSlotId = slot.id;
+    if (assignedPulseTimer) clearTimeout(assignedPulseTimer);
+    assignedPulseTimer = setTimeout(() => {
+      lastAssignedSlotId = "";
+      assignedPulseTimer = null;
+    }, 950);
+    showPickChips(assignedPlayer, prevPicked);
 
     const previousUniverseKey = universeKey(universe);
     selectedPlayer = null;
@@ -2396,12 +2646,12 @@
     fallbackNotice = mysteryAssignment
       ? "Mystery Pick added to the XI. Identity remains hidden."
       : tutorialAttackPoolActive && picked.length === 1
-        ? `${assignedName} changes your attack immediately. Phoebe: now protect balance, chemistry and Libra Score.`
+        ? `${assignedName} changed the XI. Watch balance, chemistry and Libra react.`
         : isGoldenRound ? `Golden Pick: ${pickLabel}` : pickLabel;
     if (tutorialAttackPoolActive) tutorialAttackPoolActive = false;
 
     if (picked.length >= 11) {
-      startPostDraftAnalysis();
+      startBenchRound();
     } else {
       setTimeout(() => spinUniverse(false, previousUniverseKey), 0);
     }
@@ -2467,12 +2717,12 @@
   ];
 
   function outcomeIndex(score: number) {
-    if (score >= 94) return 6;
-    if (score >= 89) return 5;
-    if (score >= 84) return 4;
-    if (score >= 79) return 3;
-    if (score >= 73) return 2;
-    if (score >= 67) return 1;
+    if (score >= 91) return 6;
+    if (score >= 86) return 5;
+    if (score >= 81) return 4;
+    if (score >= 76) return 3;
+    if (score >= 70) return 2;
+    if (score >= 64) return 1;
     return 0;
   }
 
@@ -2562,35 +2812,35 @@
 
     let baseIndex = outcomeIndex(score);
     const titleRoll = seededUnit([worldCupSimulationSeed, seed, "worldcup-title"]);
-    if (baseIndex === 6 && (score < 96 || titleRoll < 0.42)) baseIndex = 5;
+    if (baseIndex === 6 && (score < 93 || titleRoll < 0.26)) baseIndex = 5;
     if (avgIogValue < 70 && baseIndex > 2) baseIndex = 2;
     if ((squadLibra ?? 0) < 48 && baseIndex > 3) baseIndex -= 1;
-    if (goalkeeperQuality < 66 && baseIndex > 4) baseIndex = 4;
+    if (goalkeeperQuality < 64 && baseIndex > 4) baseIndex = 4;
 
     const baseOutcome = worldCupOutcomeOrder[clamp(baseIndex, 0, worldCupOutcomeOrder.length - 1)] as WorldCupOutcome;
     let boostStages = 0;
     const boostEligible =
-      (squadLibra ?? 0) >= 85 &&
-      avgIogValue >= 72 &&
-      chemistryScore >= 52 &&
-      fitScore >= 60 &&
-      weakestScore >= 62 &&
-      goalkeeperQuality >= 62 &&
+      (squadLibra ?? 0) >= 82 &&
+      avgIogValue >= 70 &&
+      chemistryScore >= 48 &&
+      fitScore >= 55 &&
+      weakestScore >= 58 &&
+      goalkeeperQuality >= 58 &&
       baseIndex < worldCupOutcomeOrder.length - 1;
     const boostRoll = seededUnit([worldCupSimulationSeed, seed, "libra-boost"]);
     if (boostEligible) {
-      const oneStageChance = (squadLibra ?? 0) >= 90 ? 0.84 : 0.56;
+      const oneStageChance = (squadLibra ?? 0) >= 90 ? 0.88 : 0.68;
       if (boostRoll < oneStageChance) boostStages = 1;
       const twoStageRoll = seededUnit([worldCupSimulationSeed, seed, "libra-miracle"]);
       if (
         boostStages === 1 &&
         (squadLibra ?? 0) >= 90 &&
-        avgIogValue >= 84 &&
-        chemistryScore >= 74 &&
-        fitScore >= 74 &&
-        weakestScore >= 70 &&
+        avgIogValue >= 82 &&
+        chemistryScore >= 70 &&
+        fitScore >= 70 &&
+        weakestScore >= 68 &&
         baseIndex <= 4 &&
-        twoStageRoll < 0.1
+        twoStageRoll < 0.16
       ) {
         boostStages = 2;
       }
@@ -2598,11 +2848,36 @@
 
     const finalIndex = clamp(baseIndex + boostStages, 0, worldCupOutcomeOrder.length - 1);
     const finalOutcome = worldCupOutcomeOrder[finalIndex] as WorldCupOutcome;
-    const leadingLine =
-      balanceProfile.status === "Balanced XI"
-        ? "a balanced tactical profile"
-        : `${balanceProfile.status.toLowerCase()} shape`;
-    const explanation = `${finalOutcome} came from ${leadingLine}, ${varianceNote(variance)}, ${Math.round(goalkeeperQuality)} GK quality, ${Math.round(starPower)} star power and a ${Math.round(weakestScore)} weakest-link floor.`;
+    const weakLink = weakestScore < 68;
+    const weakGK = goalkeeperQuality < 72;
+    const lowLibra = (squadLibra ?? 0) < 68;
+    const thinSpread = lineSpread > 14;
+    let explanation: string;
+    if (finalOutcome === "World Cup Winner") {
+      explanation = `Exceptional. Star power of ${Math.round(starPower)}, a ${Math.round(weakestScore)} weakest-link floor, and ${varianceNote(variance)} all aligned. This XI earned every round.`;
+    } else if (finalOutcome === "Runner-up") {
+      explanation = weakLink
+        ? `So close to glory. The ${Math.round(weakestScore)} weakest-link score was exposed at the decisive moment — one stronger position could have changed the final.`
+        : `Reached the final, but ${varianceNote(variance)} cost the trophy. This was a strong XI that deserved better.`;
+    } else if (finalOutcome === "Semifinal Exit") {
+      explanation = weakGK
+        ? `The XI had the attacking quality to go further, but a ${Math.round(goalkeeperQuality)} GK rating left the last line vulnerable under knockout pressure.`
+        : weakLink
+          ? `Your XI had real quality, but the ${Math.round(weakestScore)} weakest-link floor was targeted in the knockout draw. A deeper bench would have changed the outcome.`
+          : `Good enough for the semis, but ${varianceNote(variance)} ended the run at the wrong moment. Lift the Libra score and the ceiling rises significantly.`;
+    } else if (finalOutcome === "Quarterfinal Exit") {
+      explanation = thinSpread
+        ? `The XI had talent, but the gap between your best and weakest lines was too exposed in a knockout format. Balance the three lines and QF exits become SF runs.`
+        : lowLibra
+          ? `Solid build, but consistency gaps across the XI meant one bad night ended the campaign. Higher Libra acts as a knockout insurance policy.`
+          : `Quality was there for a deeper run, but the tournament draw was harsh. ${varianceNote(variance)} caught this team at the wrong moment.`;
+    } else {
+      explanation = weakLink
+        ? `The weakest link (${Math.round(weakestScore)}) was the early exit reason — knockout football punishes any gap in the XI. Fix that position and the group stage exit becomes history.`
+        : weakGK
+          ? `Goalkeeping quality (${Math.round(goalkeeperQuality)}) was the pressure point that cracked. A stronger last line keeps you alive longer in tournament football.`
+          : `Tough exit. ${varianceNote(variance)} hit at the worst time. This squad has more potential — review the weakest line and run again.`;
+    }
 
     return {
       baseOutcome,
@@ -2706,19 +2981,19 @@
       cap = 1;
     } else if (avg10 < 7.7) {
       base = 1 + (avg10 - 7.2) * 4;
-      cap = 3;
+      cap = 4;
     } else if (avg10 < 8.1) {
-      base = 3 + (avg10 - 7.7) * 10;
-      cap = 7;
+      base = 3 + (avg10 - 7.7) * 12;
+      cap = 9;
     } else if (avg10 < 8.5) {
-      base = 7 + (avg10 - 8.1) * 20;
-      cap = 15;
+      base = 8 + (avg10 - 8.1) * 24;
+      cap = 18;
     } else if (avg10 < 8.9) {
-      base = 15 + (avg10 - 8.5) * 37.5;
-      cap = 30;
+      base = 18 + (avg10 - 8.5) * 42;
+      cap = 36;
     } else {
-      base = 30 + Math.min(15, (avg10 - 8.9) * 30);
-      cap = 45;
+      base = 36 + Math.min(18, (avg10 - 8.9) * 36);
+      cap = 54;
     }
 
     const balanceModifier =
@@ -2776,7 +3051,7 @@
     const lineSpread = lineScores.length ? Math.max(...lineScores) - Math.min(...lineScores) : 18;
     const weakestScore = Math.min(...roster.map((player) => player.adjustedIog));
     const riskPenalty = formationRiskScore(formation);
-    const modeDifficulty = draftMode === "invinciblesClub" ? 2.4 : 3.8;
+    const modeDifficulty = draftMode === "invinciblesClub" ? 1.2 : 3.8;
     const strength =
       squadAverage * 0.44 +
       squadLibra * 0.2 +
@@ -2792,9 +3067,9 @@
     const bands: Record<string, { wins: [number, number]; draws: [number, number]; losses: [number, number] }> = {
       weak: { wins: [10, 16], draws: [6, 10], losses: [12, 18] },
       average: { wins: [15, 20], draws: [6, 10], losses: [8, 14] },
-      good: { wins: [20, 25], draws: [6, 9], losses: [4, 9] },
-      great: { wins: [25, 30], draws: [5, 8], losses: [1, 5] },
-      elite: { wins: [29, 34], draws: [3, 7], losses: [0, 3] }
+      good: { wins: [20, 26], draws: [5, 9], losses: [3, 9] },
+      great: { wins: [26, 32], draws: [4, 8], losses: [0, 5] },
+      elite: { wins: [30, 36], draws: [2, 7], losses: [0, 3] }
     };
     const selectedBand = bands[band];
     const winsRange = scaledRange(selectedBand.wins, matches);
@@ -2802,8 +3077,8 @@
     const lossesRange = scaledRange(selectedBand.losses, matches);
     const seed = roster.map((player) => `${player.id ?? player.name}:${player.slotId}:${player.adjustedIog}`).join(",");
     const candidates: Array<{ wins: number; draws: number; losses: number; score: number }> = [];
-    const targetWins = clamp(8 + (strength - 62) * 0.62, winsRange[0], winsRange[1]);
-    const targetDraws = clamp(9 - Math.max(0, strength - 74) * 0.12 + Math.max(0, lineSpread - 9) * 0.12, drawsRange[0], drawsRange[1]);
+    const targetWins = clamp(8 + (strength - 58) * 0.72, winsRange[0], winsRange[1]);
+    const targetDraws = clamp(9 - Math.max(0, strength - 72) * 0.12 + Math.max(0, lineSpread - 9) * 0.12, drawsRange[0], drawsRange[1]);
 
     for (let winsCandidate = winsRange[0]; winsCandidate <= winsRange[1]; winsCandidate++) {
       for (let drawsCandidate = drawsRange[0]; drawsCandidate <= drawsRange[1]; drawsCandidate++) {
@@ -2849,10 +3124,10 @@
     const goalsAgainst = Math.max(18, Math.min(88, Math.round(72 - (defenseAverage - 68) * 0.82 - squadLibra * 0.11 + losses * 1.35 + riskPenalty * 0.8)));
     const goalDifference = goalsFor - goalsAgainst;
     const cleanSheets = Math.max(1, Math.min(Math.round(matches * 0.58), Math.round(3 + (defenseAverage - 70) * 0.28 + squadFit * 0.05 - losses * 0.12)));
-    const titleChance = Math.max(1, Math.min(94, Math.round((points / etMaxPoints - 0.52) * 170 + squadLibra * 0.08 + squadChemistry * 0.05 - losses * 1.4)));
+    const titleChance = Math.max(1, Math.min(94, Math.round((points / etMaxPoints - 0.48) * 155 + squadLibra * 0.10 + squadChemistry * 0.06 - losses * 1.2)));
     const invinciblesRating = Math.max(0, Math.min(100, Math.round(strength * 0.72 + squadLibra * 0.18 + squadChemistry * 0.1)));
     const projectedPoints38 = matches === 38 ? points : Math.round((points / matches) * 38);
-    const position = projectedPoints38 >= 92 ? "1st" : projectedPoints38 >= 84 ? "2nd" : projectedPoints38 >= 76 ? "3rd" : projectedPoints38 >= 68 ? "4th" : projectedPoints38 >= 60 ? "6th" : projectedPoints38 >= 50 ? "9th" : projectedPoints38 >= 40 ? "13th" : "17th";
+    const position = projectedPoints38 >= 88 ? "1st" : projectedPoints38 >= 82 ? "2nd" : projectedPoints38 >= 74 ? "3rd" : projectedPoints38 >= 66 ? "4th" : projectedPoints38 >= 58 ? "6th" : projectedPoints38 >= 48 ? "9th" : projectedPoints38 >= 38 ? "13th" : "17th";
     const record = `${wins}-${draws}-${losses}`;
 
     return { wins, draws, losses, record, points, position, goalDifference, goalsFor, goalsAgainst, cleanSheets, titleChance, invincibleChance, invinciblesRating };
@@ -3800,8 +4075,69 @@
   function enterFinalReveal() {
     revealedMysteryPlayerIds = picked.filter((player) => player.mysteryPick).map((player) => String(player.id));
     showDraftTimeline = false;
-    showTeamCompare = false;
+    startFinalVerdictSequence();
+  }
+
+  function prefersReducedMotion() {
+    return typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  }
+
+  function finalVerdictTitle() {
+    if (draftMode === "worldcup") return `WORLD CUP RESULT: ${predictedWorldCupOutcome.toUpperCase()}`;
+    if (draftMode === "et") return `FINAL SIGNAL: ${predictedEtAlienMatch.resultText.toUpperCase()}`;
+    if (draftMode === "invinciblesClub") return `SEASON RESULT: ${predictedEtRecord.position.toUpperCase()}`;
+    if (clubFormat === "champions") return `EUROPEAN RESULT: ${predictedChampionsLeagueOutcome.toUpperCase()}`;
+    return `SEASON RESULT: ${predictedClubRecord.record}`;
+  }
+
+  function finalVerdictDetail() {
+    if (draftMode === "worldcup") {
+      return libraBonusActive ? `LIBRA BOOST: +${worldCupSimulation.libraBoostStages} ROUND` : `TEAM BALANCE: ${finalBalanceProfile.status.toUpperCase()}`;
+    }
+    if (draftMode === "et") return `OPPONENT: ${predictedEtAlienMatch.opponent.name.toUpperCase()}`;
+    if (draftMode === "invinciblesClub") {
+      const run = predictedEtRecord.losses === 0 ? invinciblesSeasonMatches : Math.max(6, Math.round((predictedEtRecord.wins + predictedEtRecord.draws) * 0.66));
+      return `UNBEATEN RUN: ${run} MATCHES`;
+    }
+    if (clubFormat === "champions") return `GRADE: ${grade}`;
+    return `POINTS: ${predictedClubRecord.points}`;
+  }
+
+  function completeFinalVerdict() {
+    if (finalVerdictTimer) {
+      clearTimeout(finalVerdictTimer);
+      finalVerdictTimer = null;
+    }
+    finalVerdictStepIndex = finalVerdictSteps.length - 1;
     screen = "result";
+  }
+
+  function scheduleFinalVerdictStep() {
+    if (finalVerdictTimer) clearTimeout(finalVerdictTimer);
+    if (prefersReducedMotion()) {
+      finalVerdictTimer = setTimeout(completeFinalVerdict, 350);
+      return;
+    }
+
+    finalVerdictTimer = setTimeout(() => {
+      if (finalVerdictStepIndex < finalVerdictSteps.length - 1) {
+        finalVerdictStepIndex += 1;
+        scheduleFinalVerdictStep();
+      } else {
+        finalVerdictTimer = setTimeout(completeFinalVerdict, 520);
+      }
+    }, 560);
+  }
+
+  function startFinalVerdictSequence() {
+    if (finalVerdictTimer) clearTimeout(finalVerdictTimer);
+    finalVerdictStepIndex = 0;
+    screen = "verdict";
+    scheduleFinalVerdictStep();
+  }
+
+  function skipFinalVerdict() {
+    completeFinalVerdict();
   }
 
   function getClubSeasonRecord(avgIog: number, grade: string, matches = 38): ClubSeasonRecord {
@@ -4167,7 +4503,7 @@
     </div>
   {/if}
 
-  {#if screen !== "loading" && screen !== "analysis" && screen !== "simulation" && screen !== "record" && screen !== "libra"}
+  {#if screen !== "loading" && screen !== "analysis" && screen !== "simulation" && screen !== "record" && screen !== "libra" && screen !== "verdict"}
     <nav class="nav" class:menu-nav={screen === "menu"}>
       <div class="nav-brand">
         <img src="/logo-white.png" alt="Galactico11" />
@@ -4285,6 +4621,13 @@
     <section class="panel mode-screen">
       <button class="back-link" on:click={backToMenu}>Back</button>
       <h1>Choose your stage</h1>
+      <div class="quick-loop" aria-label="Galactico11 flow">
+        <span>Pick a star</span>
+        <i></i>
+        <span>Watch balance move</span>
+        <i></i>
+        <span>Simulate the consequence</span>
+      </div>
 
       <div class="mode-grid">
         <button
@@ -4302,7 +4645,12 @@
           <div class="mode-card-content">
             <strong class="text-white">World Cup 2026</strong>
             <span class="mode-badge">Realistic</span>
-            <span class="text-white/75">A realistic draft mode based on the 2026 FIFA World Cup. Build your best XI using real nations, real squads, realistic roles, and tournament-style football logic.</span>
+            <em>Build a nation’s dream XI. Survive the tournament.</em>
+            <div class="mode-preview">
+              <span>Nation pools</span>
+              <span>Knockouts</span>
+              <span>Pressure picks</span>
+            </div>
           </div>
         </button>
 
@@ -4321,7 +4669,12 @@
           <div class="mode-card-content">
             <strong class="text-white">Invincibles Mode</strong>
             <span class="mode-badge">Club Season</span>
-            <span class="text-slate-300">A club football challenge built around a 38-match domestic season. Draft from Europe’s strongest leagues and chase the unbeaten campaign.</span>
+            <em>Draft a club side and chase an unbeaten season.</em>
+            <div class="mode-preview">
+              <span>38 matches</span>
+              <span>Streak meter</span>
+              <span>Title pressure</span>
+            </div>
           </div>
         </button>
 
@@ -4336,7 +4689,12 @@
           <div class="mode-card-content">
             <strong class="text-white">ET Mode</strong>
             <span class="mode-badge">Signature Mode</span>
-            <span class="text-white/75">Aliens have challenged Earth in the final competition. Build the Galactico11 XI while the draft signal is under sabotage.</span>
+            <em>Build Earth’s strongest XI. Save the planet.</em>
+            <div class="mode-preview et-preview">
+              <span>Free draft</span>
+              <span>Alien threat</span>
+              <span>Superteam chaos</span>
+            </div>
           </div>
         </button>
       </div>
@@ -4433,6 +4791,26 @@
           <div class="counter">{picked.length}/11</div>
         </div>
 
+        {#if lastAssignedPlayer && picked.length > 0}
+          <div class="pick-impact-strip" aria-live="polite">
+            <div>
+              <span>Last Pick</span>
+              <strong>
+                {#if isMysteryIdentityHidden(lastAssignedPlayer)}
+                  Mystery Pick
+                {:else}
+                  {lastAssignedPlayer.name}
+                {/if}
+              </strong>
+            </div>
+            <div>
+              <span>IoG</span>
+              <strong>{isMysteryIdentityHidden(lastAssignedPlayer) ? "???" : formatIoG(lastAssignedPlayer.adjustedIog)}</strong>
+            </div>
+            <p>{pickReaction}</p>
+          </div>
+        {/if}
+
         <div class="mobile-draft-sticky" aria-label="Mobile draft controls">
           <div class="mobile-draft-pills">
             <span aria-label={`Formation ${formation}`}><i>⚽</i>{formation}</span>
@@ -4443,6 +4821,14 @@
             <span aria-label={`${respinsRemaining} respins remaining`}><i>↻</i>{respinsRemaining}</span>
           </div>
 
+          {#if pickChips.length > 0}
+            <div class="pick-chips mobile-pick-chips" aria-live="polite" aria-atomic="true">
+              {#each pickChips as chip (chip.text)}
+                <span class="pick-chip pick-chip-{chip.tone}">{chip.text}</span>
+              {/each}
+            </div>
+          {/if}
+
           <div class="mobile-squad-tracker" aria-label={`Selected ${picked.length} of 11 players`}>
             <div class="mobile-squad-slots">
               {#each pitchSlots as slot}
@@ -4451,6 +4837,7 @@
                   class:eligible={slot.state === "eligible"}
                   class:locked={slot.state === "locked"}
                   class:selected={selectedSlotId === slot.id}
+                  class:just-assigned={lastAssignedSlotId === slot.id}
                   disabled={slot.state === "filled" || slot.state === "locked"}
                   style={`left:${slot.x}%; top:${slot.y}%`}
                   on:click={() => clickSlot(slot)}
@@ -4609,7 +4996,7 @@
                 role="button"
                 tabindex="0"
                 on:click={(event) => {
-                  if ((event.target as HTMLElement).closest(".stats-details, .compare-toggle")) return;
+                  if ((event.target as HTMLElement).closest(".stats-details")) return;
                   selectPlayer(player);
                 }}
                 on:keydown={(event) => {
@@ -4648,14 +5035,6 @@
                           <em>No open compatible slot</em>
                         {/if}
                       </div>
-                      <button
-                        class="compare-toggle"
-                        type="button"
-                        class:active={comparePlayerIds.includes(String(player.id))}
-                        on:click={(event) => toggleCompare(player, event)}
-                      >
-                        {comparePlayerIds.includes(String(player.id)) ? "Compared" : "Compare"}
-                      </button>
                     {/if}
                     {#if !isMysteryCardHidden(player)}
                       <div class="slot-info">
@@ -4698,40 +5077,16 @@
             <div class="status danger">No players visible. Clear search or add more players.</div>
           {/if}
 
-          {#if comparisonPlayers().length > 0}
-            <section class="compare-panel" aria-label="Player comparison">
-              <header>
-                <span>Optional Comparison</span>
-                <button type="button" on:click={() => (comparePlayerIds = [])}>Clear</button>
-              </header>
-              <div class="compare-player-grid">
-                {#each comparisonPlayers() as player}
-                  {@const impact = comparisonDelta(player)}
-                  <article>
-                    <strong>{player.name}</strong>
-                    <small>{displayTeamContext(player)} · {getPositions(player).join(", ")}</small>
-                    <dl>
-                      <div><dt>IoG</dt><dd>{formatIoG(player.adjustedIog)}</dd></div>
-                      <div><dt>Best Slot</dt><dd>{impact.slot}</dd></div>
-                      <div><dt>Chemistry</dt><dd>{signedImpact(impact.chemistry)}</dd></div>
-                      <div><dt>Libra</dt><dd>{signedImpact(impact.libra)}</dd></div>
-                      {#each breakdownRows(player).slice(0, 6) as row}
-                        <div><dt>{row[0]}</dt><dd>{formatIoG(row[1])}</dd></div>
-                      {/each}
-                    </dl>
-                    <p><b>Strength:</b> {breakdownRows(player).sort((a, b) => Number(b[1]) - Number(a[1]))[0]?.[0]}</p>
-                    <p><b>Risk:</b> {breakdownRows(player).sort((a, b) => Number(a[1]) - Number(b[1]))[0]?.[0]}</p>
-                  </article>
-                {/each}
-              </div>
-            </section>
-          {/if}
         {/if}
 
         <div class="progress">
           {#each Array(11) as _, i}
             <div class:active={i < picked.length}></div>
           {/each}
+        </div>
+
+        <div class="mobile-live-balance">
+          <TeamBalanceHexagon players={picked} {formation} {chemistry} {positionFit} />
         </div>
       </div>
 
@@ -4760,6 +5115,7 @@
               class:eligible={slot.state === "eligible"}
               class:locked={slot.state === "locked"}
               class:selected={selectedSlotId === slot.id}
+              class:just-assigned={lastAssignedSlotId === slot.id}
               disabled={slot.state === "filled" || slot.state === "locked"}
               style={`left:${slot.x}%; top:${slot.y}%`}
               on:click={() => clickSlot(slot)}
@@ -4778,6 +5134,17 @@
               {/if}
             </button>
           {/each}
+        </div>
+
+        <div class="pick-impact-row" class:empty={pickChips.length === 0} aria-live="polite" aria-atomic="true">
+          {#if pickChips.length > 0}
+            <span class="pick-impact-label">Pick Impact</span>
+            <div class="pick-chips">
+              {#each pickChips as chip (chip.text)}
+                <span class="pick-chip pick-chip-{chip.tone}">{chip.text}</span>
+              {/each}
+            </div>
+          {/if}
         </div>
 
         <div class="live-analysis-visual">
@@ -4832,6 +5199,7 @@
                 class:filled={slot.state === "filled"}
                 class:unavailable={slot.state === "locked"}
                 class:selected={selectedSlotId === slot.id}
+                class:just-assigned={lastAssignedSlotId === slot.id}
                 disabled={slot.state !== "eligible"}
                 on:click={() => assignSelected(slot)}
               >
@@ -4853,6 +5221,102 @@
           {/if}
         </div>
       {/if}
+    </section>
+  {/if}
+
+  {#if screen === "bench"}
+    <section class="panel bench-screen">
+      <header class="bench-header">
+        <div>
+          <p class="kicker">Optional Bench Round</p>
+          <h1>Build Your Bench</h1>
+          <p class="bench-subtitle">Pick up to 5 substitutes — tap a player to assign them.</p>
+        </div>
+        <div class="bench-counter">
+          <span class="bench-counter-value">{benchCandidates.length}</span>
+          <span class="bench-counter-label">/ 5</span>
+        </div>
+      </header>
+
+      <div class="bench-slots-row">
+        {#each benchRoleSlots as slot, i}
+          {@const sub = benchCandidates.find((c) => c.benchRole === slot.role)}
+          {@const subIndex = sub ? benchCandidates.indexOf(sub) : -1}
+          <div class="bench-slot" class:bench-slot-filled={Boolean(sub)}>
+            <span class="bench-slot-label">{slot.label}</span>
+            {#if sub}
+              <strong class="bench-slot-name">{sub.name}</strong>
+              <small class="bench-slot-iog">IoG {formatIoG(sub.adjustedIog)}</small>
+              <button
+                type="button"
+                class="bench-slot-remove"
+                aria-label="Remove {sub.name} from bench"
+                on:click={() => removeFromBench(subIndex)}
+              >×</button>
+            {:else}
+              <span class="bench-slot-empty">{slot.role}</span>
+            {/if}
+          </div>
+        {/each}
+      </div>
+
+      {#if benchCandidates.length > 0}
+        {@const impact = calculateBenchImpact(benchCandidates)}
+        <div class="bench-live-impact">
+          <span>Bench Strength <strong>{impact.strength}%</strong></span>
+          <span>Flexibility <strong>{impact.flexibility}</strong></span>
+          <span>Late Threat <strong>+{impact.lateThreat}%</strong></span>
+          <span>Fatigue Guard <strong>+{impact.fatigue}%</strong></span>
+        </div>
+      {/if}
+
+      <div class="bench-pool-header">
+        <span>Available Players ({filteredBenchPool.length})</span>
+        <input
+          type="text"
+          class="bench-search-input"
+          bind:value={benchSearch}
+          placeholder="Search by name..."
+          aria-label="Search bench players"
+        />
+      </div>
+
+      <div class="bench-pool-grid" aria-label="Available bench players">
+        {#each filteredBenchPool.slice(0, 40) as player}
+          <button
+            type="button"
+            class="bench-pool-card"
+            disabled={benchCandidates.length >= 5}
+            aria-label="Add {player.name} to bench"
+            on:click={() => addToBench(player)}
+          >
+            <div class="bench-pool-info">
+              <strong>{player.name}</strong>
+              <small>{getPositions(player).join(" · ")} · {displayTeamContext(player)}</small>
+            </div>
+            <b class="bench-pool-iog">IoG {formatIoG(player.adjustedIog)}</b>
+          </button>
+        {/each}
+        {#if filteredBenchPool.length === 0}
+          <p class="bench-pool-empty">No players found. Clear the search.</p>
+        {/if}
+      </div>
+
+      {#if benchCandidates.length > 0}
+        <div class="bench-phoebe">
+          <img src="/phoebe.png" alt="Phoebe" />
+          <p>{calculateBenchImpact(benchCandidates).note}</p>
+        </div>
+      {/if}
+
+      <div class="bench-actions">
+        <button class="primary" on:click={acceptBench}>
+          {benchCandidates.length === 5 ? "Confirm Bench" : benchCandidates.length > 0 ? `Confirm ${benchCandidates.length} Sub${benchCandidates.length > 1 ? "s" : ""}` : "Skip — No Bench"}
+        </button>
+        {#if benchCandidates.length > 0}
+          <button class="secondary" on:click={skipBench}>Skip Bench</button>
+        {/if}
+      </div>
     </section>
   {/if}
 
@@ -5156,6 +5620,32 @@
     </section>
   {/if}
 
+  {#if screen === "verdict"}
+    <section
+      class="final-verdict-stage"
+      class:verdict-et={draftMode === "et"}
+      class:verdict-invincibles={draftMode === "invinciblesClub" || draftMode === "club"}
+      class:verdict-worldcup={draftMode === "worldcup"}
+      aria-label="Final verdict sequence"
+    >
+      <header class="final-verdict-header">
+        <img src="/logo-white.png" alt="Galactico11" />
+        <button class="analysis-skip" on:click={skipFinalVerdict}>Skip</button>
+      </header>
+
+      <div class="final-verdict-content" aria-live="polite">
+        <p class="kicker">{finalVerdictSteps[finalVerdictStepIndex]}</p>
+        <h1>{finalVerdictTitle()}</h1>
+        <strong>{finalVerdictDetail()}</strong>
+        <div class="final-verdict-progress" aria-label={`Verdict step ${finalVerdictStepIndex + 1} of ${finalVerdictSteps.length}`}>
+          {#each finalVerdictSteps as _, index}
+            <span class:active={index <= finalVerdictStepIndex}></span>
+          {/each}
+        </div>
+      </div>
+    </section>
+  {/if}
+
   {#if screen === "result"}
     <section class="panel result">
       <div class="result-head">
@@ -5171,6 +5661,19 @@
           <button class="secondary" on:click={restart}>Play Again</button>
         </div>
       </div>
+
+      {#if bench.length > 0}
+        <section class="result-section bench-result-summary">
+          <h2>Bench Impact</h2>
+          <div class="bench-impact-grid">
+            <article><span>Bench Strength</span><strong>{benchImpact.strength}%</strong></article>
+            <article><span>Tactical Flexibility</span><strong>{benchImpact.flexibility}</strong></article>
+            <article><span>Late Threat</span><strong>+{benchImpact.lateThreat}%</strong></article>
+            <article><span>Fatigue Resistance</span><strong>+{benchImpact.fatigue}%</strong></article>
+          </div>
+          <p class="bench-result-note">{benchImpact.note}</p>
+        </section>
+      {/if}
 
       {#if draftMode === "et"}
         <div class="et-match-result">
@@ -5397,7 +5900,6 @@
           <div class="result-section result-deepdive">
             <div class="deepdive-buttons">
               <button class="secondary" on:click={() => (showDraftTimeline = !showDraftTimeline)}>{showDraftTimeline ? "Hide" : "View"} Draft Timeline</button>
-              <button class="secondary" on:click={() => (showTeamCompare = !showTeamCompare)}>{showTeamCompare ? "Hide" : "Compare"} Teams</button>
               <button class="secondary" on:click={shareFinalResult}>Export Share Card</button>
             </div>
 
@@ -5418,39 +5920,6 @@
               </div>
             {/if}
 
-            {#if showTeamCompare}
-              <div class="deepdive-panel">
-                <h3>Compare Teams</h3>
-                <table class="compare-table">
-                  <thead>
-                    <tr><th></th><th>IoG</th><th>Chemistry</th><th>Position Fit</th><th>Libra</th></tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>Your Squad</td>
-                      <td>{displayAvgIog}</td>
-                      <td>{chemistry}%</td>
-                      <td>{positionFit}%</td>
-                      <td>{libraScore ?? "-"}</td>
-                    </tr>
-                    <tr>
-                      <td>League Average</td>
-                      <td>{formatIoG(compareBenchmarks.average.iog)}</td>
-                      <td>{compareBenchmarks.average.chemistry}%</td>
-                      <td>{compareBenchmarks.average.fit}%</td>
-                      <td>{compareBenchmarks.average.libra}</td>
-                    </tr>
-                    <tr>
-                      <td>Title Winners</td>
-                      <td>{formatIoG(compareBenchmarks.elite.iog)}</td>
-                      <td>{compareBenchmarks.elite.chemistry}%</td>
-                      <td>{compareBenchmarks.elite.fit}%</td>
-                      <td>{compareBenchmarks.elite.libra}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            {/if}
           </div>
         </div>
       {:else if draftMode !== "et"}
@@ -5667,6 +6136,423 @@
     margin: 0;
     background: #090a0f;
   }
+
+  /* ── TeamBalanceHexagon global styles (CSS extraction fix for Svelte 5 + Astro) ── */
+  :global(.balance-panel) {
+    margin-top: 24px;
+    border-top: 1px solid #262a38;
+    padding-top: 22px;
+    color: #f5f5f6;
+  }
+
+  :global(.balance-header) {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+  }
+
+  :global(.balance-header span),
+  :global(.formation-badge small),
+  :global(.balance-factors span),
+  :global(.balance-insight span) {
+    display: block;
+    color: #8c92a2;
+    font-size: 10px;
+    font-weight: 850;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  :global(.balance-header h3) {
+    margin: 5px 0 0;
+    font-size: 20px;
+  }
+
+  :global(.formation-badge) {
+    border: 1px solid rgba(201, 166, 70, 0.32);
+    border-radius: 10px;
+    background: rgba(201, 166, 70, 0.07);
+    padding: 9px 12px;
+    text-align: right;
+  }
+
+  :global(.formation-badge strong) {
+    display: block;
+    margin-top: 3px;
+    color: #d6b956;
+  }
+
+  :global(.profile-grid) {
+    margin-top: 16px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 130px;
+    align-items: center;
+    gap: 14px;
+  }
+
+  :global(.chart-shell) {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    place-items: center;
+  }
+
+  :global(.balance-radar) {
+    width: min(320px, 100%);
+    height: 256px;
+    max-height: 256px;
+    display: block;
+    overflow: visible;
+  }
+
+  :global(.team-shadow) {
+    transform: translateY(4px);
+  }
+
+  :global(.team-shape) {
+    transition: points 0.6s ease;
+    filter: drop-shadow(0 0 7px rgba(34, 240, 230, 0.72)) drop-shadow(0 0 18px rgba(34, 240, 230, 0.22));
+  }
+
+  :global(.point) {
+    filter: drop-shadow(0 0 7px rgba(34, 240, 230, 0.52));
+  }
+
+  :global(.hud-label) {
+    fill: rgba(226, 232, 240, 0.8);
+    font: 800 10px Inter, system-ui, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  :global(.forming-label) {
+    fill: rgba(239, 213, 116, 0.9);
+    font: 850 9px Inter, system-ui, sans-serif;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  :global(.line-scores) {
+    display: grid;
+    gap: 15px;
+  }
+
+  :global(.line-scores article) {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: baseline;
+    gap: 8px;
+  }
+
+  :global(.line-scores span) {
+    color: #9298a8;
+    font-size: 11px;
+  }
+
+  :global(.line-scores strong) {
+    font-size: 16px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  :global(.line-scores article > div) {
+    grid-column: 1 / -1;
+    height: 4px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #282c38;
+  }
+
+  :global(.line-scores i) {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #806b2f, #c9a646, #efd574);
+    transition: width 0.6s ease;
+  }
+
+  :global(.balance-factors) {
+    margin-top: 18px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  :global(.balance-factors article) {
+    border: 1px solid #282c38;
+    border-radius: 10px;
+    background: #151823;
+    padding: 11px;
+  }
+
+  :global(.balance-factors strong) {
+    display: block;
+    margin-top: 5px;
+    font-size: 17px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  :global(.balance-insight) {
+    margin-top: 10px;
+    border-left: 2px solid #c9a646;
+    background: rgba(201, 166, 70, 0.06);
+    padding: 12px 14px;
+  }
+
+  :global(.libra-scale) {
+    margin-top: 12px;
+    display: grid;
+    grid-template-columns: minmax(0, 150px) minmax(180px, 1fr);
+    align-items: center;
+    gap: 14px;
+    border: 1px solid rgba(201, 166, 70, 0.24);
+    border-radius: 12px;
+    background:
+      radial-gradient(circle at 86% 20%, rgba(57, 230, 201, 0.08), transparent 32%),
+      linear-gradient(135deg, rgba(201, 166, 70, 0.08), rgba(13, 16, 24, 0.94));
+    padding: 14px 16px;
+  }
+
+  :global(.libra-copy > span) {
+    color: #8c92a2;
+    font-size: 10px;
+    font-weight: 850;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  :global(.libra-copy strong) {
+    display: block;
+    margin-top: 7px;
+    color: #efd574;
+    font-size: 34px;
+    line-height: 1;
+  }
+
+  :global(.libra-copy p) {
+    margin: 7px 0 0;
+    color: #d0d4de;
+    font-size: 13px;
+    font-weight: 750;
+  }
+
+  :global(.libra-meter) {
+    min-width: 0;
+    display: grid;
+    gap: 8px;
+  }
+
+  :global(.libra-scale-svg) {
+    width: 100%;
+    height: 120px;
+    display: block;
+    overflow: visible;
+  }
+
+  :global(.libra-scale-svg text) {
+    fill: #8f95a5;
+    font: 850 10px Inter, system-ui, sans-serif;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  :global(.scale-base) {
+    fill: none;
+    stroke: rgba(201, 166, 70, 0.58);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  :global(.scale-pivot) {
+    fill: #efd574;
+    stroke: #11131b;
+    stroke-width: 3;
+    filter: drop-shadow(0 0 8px rgba(239, 213, 116, 0.24));
+  }
+
+  :global(.libra-meter p) {
+    margin: 0;
+    color: #cbd0dc;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  :global(.balance-insight p) {
+    margin: 6px 0 0;
+    color: #c9cdd7;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  :global(.final-analysis) {
+    border: 1px solid #282c38;
+    border-radius: 18px;
+    background: #11141d;
+    padding: 20px;
+  }
+
+  @media (max-width: 560px) {
+    :global(.profile-grid) {
+      grid-template-columns: 1fr;
+    }
+
+    :global(.line-scores) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    :global(.libra-scale) {
+      grid-template-columns: 104px minmax(0, 1fr);
+      padding-inline: 12px;
+    }
+
+    :global(.libra-copy strong) {
+      font-size: 28px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    :global(.balance-panel) {
+      margin-top: 16px;
+      padding-top: 16px;
+    }
+
+    :global(.final-analysis) {
+      border-radius: 14px;
+      padding: 18px;
+    }
+
+    :global(.balance-header) {
+      gap: 12px;
+    }
+
+    :global(.balance-header span),
+    :global(.formation-badge small),
+    :global(.balance-factors span),
+    :global(.balance-insight span) {
+      font-size: 8px;
+      letter-spacing: 0.1em;
+    }
+
+    :global(.balance-header h3) {
+      font-size: 18px;
+    }
+
+    :global(.formation-badge) {
+      border-radius: 8px;
+      padding: 7px 9px;
+    }
+
+    :global(.profile-grid) {
+      margin-top: 12px;
+      gap: 10px;
+    }
+
+    :global(.final-analysis .profile-grid) {
+      grid-template-columns: 1fr;
+      align-items: stretch;
+    }
+
+    :global(.balance-radar) {
+      width: min(300px, 100%);
+      height: 226px;
+      max-height: 226px;
+    }
+
+    :global(.final-analysis .balance-radar) {
+      height: clamp(188px, 50vw, 226px);
+      max-height: 226px;
+      margin-inline: auto;
+    }
+
+    :global(.line-scores) {
+      gap: 10px;
+    }
+
+    :global(.line-scores span) {
+      font-size: 10px;
+    }
+
+    :global(.line-scores strong) {
+      font-size: 14px;
+    }
+
+    :global(.balance-factors) {
+      margin-top: 12px;
+      gap: 7px;
+    }
+
+    :global(.balance-factors article) {
+      border-radius: 8px;
+      padding: 9px;
+    }
+
+    :global(.balance-factors strong) {
+      font-size: 15px;
+    }
+
+    :global(.libra-scale) {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 104px minmax(0, 1fr);
+      align-items: center;
+      border-radius: 10px;
+      padding: 12px;
+      gap: 10px;
+    }
+
+    :global(.libra-copy strong) {
+      font-size: 28px;
+    }
+
+    :global(.libra-copy p) {
+      font-size: 12px;
+    }
+
+    :global(.balance-insight) {
+      margin-top: 9px;
+      padding: 10px 12px;
+    }
+
+    :global(.balance-insight p) {
+      font-size: 12px;
+      line-height: 1.42;
+    }
+  }
+
+  @media (max-width: 430px) {
+    :global(.balance-header) {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: start;
+    }
+
+    :global(.balance-radar) {
+      width: min(280px, 100%);
+      height: 202px;
+      max-height: 202px;
+    }
+
+    :global(.final-analysis .balance-radar) {
+      height: 196px;
+      max-height: 202px;
+    }
+
+    :global(.hud-label) {
+      font-size: 9px;
+    }
+
+    :global(.balance-factors) {
+      grid-template-columns: 1fr;
+    }
+
+    :global(.libra-scale) {
+      grid-template-columns: 92px minmax(0, 1fr);
+      gap: 8px;
+      text-align: left;
+    }
+  }
+  /* ── end TeamBalanceHexagon global styles ── */
 
   .page {
     min-height: 100vh;
@@ -6218,6 +7104,26 @@
     gap: 16px;
   }
 
+  .quick-loop {
+    width: min(720px, 100%);
+    margin: 18px auto 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: #c9cdd7;
+    font-size: 12px;
+    font-weight: 850;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .quick-loop i {
+    width: 34px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(201, 166, 70, 0.85), transparent);
+  }
+
   .mode-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 32px;
@@ -6389,6 +7295,43 @@
     line-height: 1;
   }
 
+  .mode-card-content em {
+    display: block;
+    margin-top: 14px;
+    color: #f6f0d2;
+    font-size: 18px;
+    font-style: normal;
+    font-weight: 900;
+    line-height: 1.25;
+  }
+
+  .mode-preview {
+    margin-top: 18px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .mode-preview span {
+    width: auto;
+    margin: 0 !important;
+    border: 1px solid rgba(201, 166, 70, 0.24);
+    border-radius: 999px;
+    background: rgba(201, 166, 70, 0.07);
+    color: #d8dce6 !important;
+    padding: 7px 9px;
+    font-size: 10px !important;
+    font-weight: 850;
+    letter-spacing: 0.08em;
+    line-height: 1 !important;
+    text-transform: uppercase;
+  }
+
+  .et-preview span {
+    border-color: rgba(57, 230, 201, 0.28);
+    background: rgba(57, 230, 201, 0.08);
+  }
+
   .mode-option {
     min-height: 270px;
     border: 1px solid #262a38;
@@ -6451,6 +7394,409 @@
     color: rgba(221, 226, 238, 0.72);
     font-size: 13px;
     line-height: 1.5;
+  }
+
+  .bench-screen {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 36px 40px 48px;
+    animation: fadeUp 0.45s ease both;
+  }
+
+  .bench-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+
+  .bench-subtitle {
+    margin: 6px 0 0;
+    color: #8c92a2;
+    font-size: 14px;
+  }
+
+  .bench-counter {
+    flex-shrink: 0;
+    border: 1px solid #282c38;
+    border-radius: 14px;
+    background: #151823;
+    padding: 12px 18px;
+    text-align: center;
+  }
+
+  .bench-counter-value {
+    display: block;
+    color: #efd574;
+    font-size: 30px;
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  .bench-counter-label {
+    display: block;
+    margin-top: 2px;
+    color: #6b7180;
+    font-size: 12px;
+    font-weight: 750;
+  }
+
+  .bench-slots-row {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .bench-slot {
+    position: relative;
+    border: 1px solid #282c38;
+    border-radius: 14px;
+    background: #151823;
+    padding: 12px;
+    min-height: 88px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    transition: border-color 0.18s, background 0.18s;
+  }
+
+  .bench-slot.bench-slot-filled {
+    border-color: rgba(201, 166, 70, 0.4);
+    background: rgba(201, 166, 70, 0.06);
+  }
+
+  .bench-slot-label {
+    display: block;
+    color: #8c92a2;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .bench-slot-name {
+    display: block;
+    color: #f0f2f6;
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.2;
+  }
+
+  .bench-slot-iog {
+    display: block;
+    color: #efd574;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .bench-slot-empty {
+    display: block;
+    color: #434858;
+    font-size: 11px;
+    line-height: 1.3;
+    margin-top: 4px;
+  }
+
+  .bench-slot-remove {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 20px;
+    height: 20px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    color: #8c92a2;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .bench-slot-remove:hover {
+    background: rgba(248, 113, 113, 0.18);
+    color: #f87171;
+  }
+
+  .bench-live-impact {
+    display: flex;
+    gap: 18px;
+    align-items: center;
+    border: 1px solid #282c38;
+    border-radius: 12px;
+    background: #0f1119;
+    padding: 10px 16px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+
+  .bench-live-impact span {
+    color: #6b7180;
+    font-size: 11px;
+    font-weight: 750;
+    letter-spacing: 0.04em;
+  }
+
+  .bench-live-impact span strong {
+    margin-left: 5px;
+    color: #efd574;
+    font-size: 13px;
+  }
+
+  .bench-pool-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 12px;
+  }
+
+  .bench-pool-header > span {
+    color: #8c92a2;
+    font-size: 11px;
+    font-weight: 850;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .bench-search-input {
+    width: 100%;
+    max-width: 280px;
+    border: 1px solid #282c38;
+    border-radius: 10px;
+    background: #151823;
+    color: #f0f2f6;
+    font-size: 14px;
+    padding: 8px 12px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .bench-search-input:focus {
+    border-color: rgba(201, 166, 70, 0.5);
+  }
+
+  .bench-pool-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 8px;
+    max-height: 340px;
+    overflow-y: auto;
+    padding-right: 4px;
+    margin-bottom: 18px;
+  }
+
+  .bench-pool-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    border: 1px solid #282c38;
+    border-radius: 12px;
+    background: #151823;
+    color: #f0f2f6;
+    padding: 11px 14px;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, transform 0.12s;
+  }
+
+  .bench-pool-card:hover:not(:disabled) {
+    border-color: rgba(201, 166, 70, 0.42);
+    background: rgba(201, 166, 70, 0.06);
+    transform: translateY(-1px);
+  }
+
+  .bench-pool-card:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .bench-pool-info {
+    min-width: 0;
+  }
+
+  .bench-pool-info strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 800;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .bench-pool-info small {
+    display: block;
+    margin-top: 2px;
+    color: #8c92a2;
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .bench-pool-iog {
+    flex-shrink: 0;
+    border: 1px solid rgba(201, 166, 70, 0.28);
+    border-radius: 999px;
+    color: #efd574;
+    padding: 4px 9px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .bench-pool-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: #6b7180;
+    font-size: 14px;
+    padding: 24px 0;
+  }
+
+  .bench-phoebe {
+    width: min(660px, 100%);
+    margin: 0 0 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border: 1px solid rgba(201, 166, 70, 0.24);
+    border-radius: 18px;
+    background: rgba(201, 166, 70, 0.06);
+    padding: 12px 16px;
+  }
+
+  .bench-phoebe img {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  .bench-phoebe p {
+    margin: 0;
+    color: #d7dbe5;
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  .bench-actions {
+    display: flex;
+    gap: 12px;
+  }
+
+  .bench-result-summary {
+    margin-top: 28px;
+  }
+
+  .bench-result-summary h2 {
+    margin: 0 0 16px;
+    font-size: 18px;
+    letter-spacing: -0.02em;
+  }
+
+  .bench-impact-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .bench-impact-grid article {
+    border: 1px solid #282c38;
+    border-radius: 14px;
+    background: #151823;
+    padding: 14px 16px;
+  }
+
+  .bench-impact-grid span {
+    display: block;
+    color: #8c92a2;
+    font-size: 10px;
+    font-weight: 850;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+  }
+
+  .bench-impact-grid strong {
+    display: block;
+    margin-top: 8px;
+    color: #efd574;
+    font-size: 22px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .bench-result-note {
+    margin: 14px 0 0;
+    border-left: 2px solid rgba(201, 166, 70, 0.5);
+    padding: 8px 12px;
+    background: rgba(201, 166, 70, 0.05);
+    color: #c8ccd6;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 768px) {
+    .bench-screen {
+      padding: 20px 16px 32px;
+    }
+
+    .bench-slots-row {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .bench-slot {
+      padding: 8px 6px;
+      min-height: 72px;
+    }
+
+    .bench-slot-name {
+      font-size: 11px;
+    }
+
+    .bench-slot-empty {
+      font-size: 9px;
+    }
+
+    .bench-pool-grid {
+      grid-template-columns: 1fr;
+      max-height: 280px;
+    }
+
+    .bench-counter {
+      padding: 9px 14px;
+    }
+
+    .bench-counter-value {
+      font-size: 24px;
+    }
+  }
+
+  @media (max-width: 430px) {
+    .bench-slots-row {
+      grid-template-columns: repeat(5, 1fr);
+    }
+
+    .bench-slot-label {
+      font-size: 8px;
+    }
+
+    .bench-slot-name {
+      font-size: 10px;
+    }
+
+    .bench-slot-remove {
+      width: 16px;
+      height: 16px;
+      font-size: 12px;
+    }
   }
 
   .league-buttons {
@@ -6639,6 +7985,146 @@
 
   .mobile-sheet-backdrop {
     display: none;
+  }
+
+  .pick-impact-strip {
+    margin-top: 14px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 76px minmax(240px, 1.35fr);
+    align-items: center;
+    gap: 12px;
+    border: 1px solid rgba(201, 166, 70, 0.24);
+    border-radius: 16px;
+    background:
+      radial-gradient(circle at 12% 0%, rgba(201, 166, 70, 0.11), transparent 34%),
+      #121620;
+    min-height: 76px;
+    padding: 12px 14px;
+    animation: pickImpactFlash 0.75s ease both;
+  }
+
+  .pick-impact-strip span {
+    display: block;
+    color: #8f95a5;
+    font-size: 10px;
+    font-weight: 850;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .pick-impact-strip strong {
+    display: block;
+    margin-top: 4px;
+    color: #f6f1d0;
+    font-size: 15px;
+    line-height: 1.15;
+  }
+
+  .pick-impact-strip p {
+    margin: 0;
+    color: #cbd0dd;
+    font-size: 13px;
+    line-height: 1.35;
+  }
+
+  @keyframes pickImpactFlash {
+    0% { box-shadow: 0 0 0 rgba(201, 166, 70, 0); transform: translateY(-2px); }
+    40% { box-shadow: 0 0 28px rgba(201, 166, 70, 0.16); }
+    100% { box-shadow: 0 0 0 rgba(201, 166, 70, 0); transform: translateY(0); }
+  }
+
+  .pick-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+    animation: chipsIn 0.22s ease both;
+  }
+
+  .pick-impact-row {
+    width: min(100%, 560px);
+    min-height: 32px;
+    align-self: center;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 12px auto 22px;
+    padding-inline: 4px;
+    flex-wrap: wrap;
+  }
+
+  .pick-impact-row.empty {
+    margin-bottom: 18px;
+  }
+
+  .pick-impact-row .pick-chips {
+    margin: 0;
+    min-width: 0;
+  }
+
+  .pick-impact-label {
+    flex: 0 0 auto;
+    color: rgba(148, 163, 184, 0.85);
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .live-analysis-visual :global(.balance-panel) {
+    margin-top: 0;
+  }
+
+  .pick-chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    min-height: 28px;
+    padding: 0 10px;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    animation: chipFadeOut 2.4s ease forwards;
+    animation-delay: 0.18s;
+    backdrop-filter: blur(6px);
+  }
+
+  .pick-chip-good {
+    background: rgba(34, 240, 178, 0.14);
+    border: 1px solid rgba(34, 240, 178, 0.35);
+    color: #22f0b2;
+  }
+
+  .pick-chip-warn {
+    background: rgba(251, 191, 36, 0.12);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    color: #fbbf24;
+  }
+
+  .pick-chip-info {
+    background: rgba(148, 163, 184, 0.1);
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    color: #94a3b8;
+  }
+
+  .pick-chip-bad {
+    background: rgba(248, 113, 113, 0.12);
+    border: 1px solid rgba(248, 113, 113, 0.34);
+    color: #f87171;
+  }
+
+  @keyframes chipsIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes chipFadeOut {
+    0%   { opacity: 1; }
+    70%  { opacity: 1; }
+    100% { opacity: 0; }
   }
 
   .universe-grid {
@@ -6911,7 +8397,10 @@
   }
 
   .controls {
+    margin-top: 16px;
     display: flex;
+    flex-wrap: wrap;
+    align-items: center;
     gap: 12px;
   }
 
@@ -6963,11 +8452,11 @@
 
   .status,
   .notice {
-    margin-top: 20px;
+    margin-top: 16px;
     background: #151823;
     border: 1px solid #262a38;
-    border-radius: 18px;
-    padding: 22px;
+    border-radius: 16px;
+    padding: 16px 18px;
     text-align: center;
   }
 
@@ -7045,9 +8534,9 @@
   }
 
   .pool-tools {
-    margin-top: 22px;
+    margin-top: 18px;
     display: grid;
-    grid-template-columns: 1fr 170px 170px;
+    grid-template-columns: minmax(0, 1fr) 220px 180px;
     gap: 10px;
   }
 
@@ -7058,8 +8547,10 @@
     background: #151823;
     color: white;
     border-radius: 16px;
-    padding: 15px 18px;
+    min-height: 56px;
+    padding: 13px 16px;
     font-size: 16px;
+    box-sizing: border-box;
   }
 
   .pool-tools select {
@@ -7067,7 +8558,7 @@
   }
 
   .spots {
-    margin: 16px 0;
+    margin: 12px 0 14px;
   }
 
   .player-list {
@@ -7075,7 +8566,7 @@
     overflow-y: auto;
     padding-right: 6px;
     display: grid;
-    gap: 12px;
+    gap: 10px;
   }
 
   .load-more-options {
@@ -7087,8 +8578,8 @@
     border: 1px solid #262a38;
     background: #151823;
     color: white;
-    border-radius: 18px;
-    padding: 18px;
+    border-radius: 16px;
+    padding: 16px;
     text-align: left;
     cursor: pointer;
     position: relative;
@@ -7189,7 +8680,7 @@
 
   .player-main strong {
     display: block;
-    font-size: 20px;
+    font-size: 19px;
   }
 
   .mobile-player-head {
@@ -7310,108 +8801,6 @@
     font-size: 15px;
   }
 
-  .compare-toggle {
-    width: fit-content;
-    margin-top: 10px;
-    border: 1px solid rgba(201, 166, 70, 0.28);
-    border-radius: 999px;
-    background: rgba(201, 166, 70, 0.07);
-    color: #f1d27a;
-    padding: 7px 11px;
-    font-size: 11px;
-    font-weight: 900;
-    cursor: pointer;
-  }
-
-  .compare-toggle.active {
-    background: rgba(201, 166, 70, 0.22);
-    border-color: rgba(201, 166, 70, 0.65);
-  }
-
-  .compare-panel {
-    margin-top: 16px;
-    border: 1px solid rgba(201, 166, 70, 0.28);
-    border-radius: 18px;
-    background: rgba(13, 16, 25, 0.86);
-    padding: 16px;
-  }
-
-  .compare-panel header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .compare-panel header span {
-    color: #c9a646;
-    font-size: 10px;
-    font-weight: 900;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-  }
-
-  .compare-panel header button {
-    border: 0;
-    background: transparent;
-    color: #d7dbe5;
-    font-weight: 800;
-    cursor: pointer;
-  }
-
-  .compare-player-grid {
-    margin-top: 14px;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-  }
-
-  .compare-player-grid article {
-    border: 1px solid #262a38;
-    border-radius: 16px;
-    background: rgba(255, 255, 255, 0.035);
-    padding: 14px;
-  }
-
-  .compare-player-grid strong {
-    display: block;
-    color: #fff;
-  }
-
-  .compare-player-grid small {
-    color: #9da3b2;
-  }
-
-  .compare-player-grid dl {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 7px;
-  }
-
-  .compare-player-grid dl div {
-    border-top: 1px solid #262a38;
-    padding-top: 6px;
-  }
-
-  .compare-player-grid dt {
-    color: #8f95a5;
-    font-size: 9px;
-    text-transform: uppercase;
-  }
-
-  .compare-player-grid dd {
-    margin: 2px 0 0;
-    color: #f4f4f5;
-    font-weight: 900;
-  }
-
-  .compare-player-grid p {
-    margin: 8px 0 0;
-    color: #cbd0dc;
-    font-size: 12px;
-    line-height: 1.35;
-  }
-
   .progress {
     margin-top: 24px;
     display: grid;
@@ -7427,6 +8816,10 @@
 
   .progress div.active {
     background: var(--accent);
+  }
+
+  .mobile-live-balance {
+    display: none;
   }
 
   .pitch,
@@ -7548,6 +8941,17 @@
     border: 1px solid var(--accent);
   }
 
+  .pitch button.just-assigned,
+  .mobile-squad-slots button.just-assigned,
+  .mobile-slot-list button.just-assigned {
+    animation: assignPulse 0.9s ease both;
+  }
+
+  .pitch button.filled.just-assigned {
+    border-color: #fff1a8;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent), 0 0 28px color-mix(in srgb, var(--accent) 28%, transparent);
+  }
+
   .pitch button span,
   .final-pitch span {
     font-size: 24px;
@@ -7616,6 +9020,118 @@
     opacity: 0.13;
     background: linear-gradient(0deg, transparent 0 66.5%, rgba(255, 255, 255, 0.14) 66.8%, transparent 67.1%);
     pointer-events: none;
+  }
+
+  .final-verdict-stage {
+    --verdict-accent: #c9a646;
+    min-height: calc(100vh - 120px);
+    max-width: 1420px;
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--verdict-accent) 32%, #262a38);
+    border-radius: 26px;
+    background:
+      radial-gradient(circle at 72% 24%, color-mix(in srgb, var(--verdict-accent) 12%, transparent), transparent 34%),
+      linear-gradient(135deg, #080a10 0%, #10131d 58%, color-mix(in srgb, var(--verdict-accent) 10%, #090b12) 100%);
+    box-shadow: 0 34px 100px rgba(0, 0, 0, 0.46);
+    padding: 26px 34px;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    isolation: isolate;
+    animation: fadeIn 0.24s ease both;
+  }
+
+  .final-verdict-stage::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+      linear-gradient(0deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    background-size: 72px 72px;
+    opacity: 0.12;
+    mask-image: radial-gradient(circle at 55% 45%, black, transparent 72%);
+  }
+
+  .final-verdict-stage.verdict-et {
+    --verdict-accent: #39e6c9;
+  }
+
+  .final-verdict-stage.verdict-invincibles {
+    --verdict-accent: #8db7ff;
+  }
+
+  .final-verdict-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+  }
+
+  .final-verdict-header img {
+    width: auto;
+    height: 46px;
+    display: block;
+  }
+
+  .final-verdict-content {
+    align-self: center;
+    width: min(900px, 100%);
+    margin: 0 auto;
+    text-align: center;
+    animation: fadeUp 0.34s ease both;
+  }
+
+  .final-verdict-content .kicker {
+    margin: 0;
+    color: var(--verdict-accent);
+    font-size: 12px;
+    font-weight: 950;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .final-verdict-content h1 {
+    margin: 18px 0 0;
+    color: #fff;
+    font-size: clamp(42px, 6vw, 82px);
+    line-height: 0.95;
+    letter-spacing: -0.035em;
+  }
+
+  .final-verdict-content strong {
+    display: inline-flex;
+    margin-top: 20px;
+    border: 1px solid color-mix(in srgb, var(--verdict-accent) 38%, transparent);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--verdict-accent) 10%, transparent);
+    color: #f8fafc;
+    padding: 10px 16px;
+    font-size: clamp(13px, 1.3vw, 17px);
+    font-weight: 900;
+    letter-spacing: 0.02em;
+  }
+
+  .final-verdict-progress {
+    margin-top: 30px;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .final-verdict-progress span {
+    width: 46px;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+    transition: background 0.24s ease, transform 0.24s ease;
+  }
+
+  .final-verdict-progress span.active {
+    background: var(--verdict-accent);
+    transform: scaleY(1.25);
   }
 
   .analysis-click-surface {
@@ -9285,31 +10801,6 @@
     color: #f1d27a;
   }
 
-  .compare-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  .compare-table th,
-  .compare-table td {
-    padding: 10px 12px;
-    text-align: left;
-    border-bottom: 1px solid #20232f;
-    font-size: 13px;
-  }
-
-  .compare-table th {
-    color: #8a8f9e;
-    text-transform: uppercase;
-    font-size: 11px;
-    letter-spacing: 0.1em;
-  }
-
-  .compare-table td:first-child {
-    color: #c9a646;
-    font-weight: 800;
-  }
-
   .footer-note {
     margin: 20px 0 0;
     color: #6f7484;
@@ -10319,6 +11810,16 @@
       backdrop-filter: blur(14px);
     }
 
+    .mobile-pick-chips {
+      margin: -2px 0 0;
+      gap: 5px;
+    }
+
+    .mobile-pick-chips .pick-chip {
+      padding: 3px 9px;
+      font-size: 10px;
+    }
+
     .mobile-draft-pills {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -10355,6 +11856,13 @@
       display: none;
     }
 
+    .mobile-live-balance {
+      display: block;
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid #1e2230;
+    }
+
     .draft-grid .universe-grid {
       display: none;
     }
@@ -10388,17 +11896,17 @@
 
     .pool-tools {
       display: grid;
-      grid-template-columns: minmax(0, 1.2fr) minmax(96px, 0.55fr) minmax(96px, 0.55fr);
-      gap: 8px;
-      margin-top: 10px;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 7px;
+      margin-top: 9px;
     }
 
     .draft-grid .controls {
-      margin-top: 8px;
+      margin-top: 9px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
+      gap: 8px;
     }
 
     .draft-grid .controls .primary,
@@ -10411,17 +11919,29 @@
 
     .status,
     .notice {
-      margin-top: 14px;
+      margin-top: 10px;
       border-radius: 14px;
-      padding: 14px;
+      padding: 12px;
     }
 
     .search,
     .pool-tools select {
-      min-height: 38px;
+      min-height: 44px;
       border-radius: 11px;
       padding: 9px 10px;
       font-size: 13px;
+    }
+
+    .pool-tools select {
+      min-width: 0;
+    }
+
+    .pool-tools {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .pool-tools .search {
+      grid-column: 1 / -1;
     }
 
     .spots {
@@ -10432,14 +11952,14 @@
 
     .player-list {
       max-height: min(53svh, 520px);
-      gap: 7px;
+      gap: 6px;
       padding-right: 0;
     }
 
     .player-card {
-      min-height: 76px;
+      min-height: 74px;
       border-radius: 14px;
-      padding: 9px 10px;
+      padding: 8px 10px;
     }
 
     .player-card:hover {
@@ -10570,7 +12090,6 @@
 
     .slot-info,
     .stats-details,
-    .compare-toggle,
     .iog-breakdown {
       display: none;
     }
@@ -10668,6 +12187,12 @@
       background: rgba(201, 166, 70, 0.14);
       cursor: default;
       animation: mobileSlotFill 0.34s ease both;
+    }
+
+    .mobile-squad-slots button.just-assigned,
+    .mobile-slot-list button.just-assigned {
+      border-color: #fff1a8;
+      box-shadow: 0 0 0 4px rgba(201, 166, 70, 0.2), 0 0 22px rgba(201, 166, 70, 0.22);
     }
 
     .mobile-squad-slots button.locked {
@@ -11330,11 +12855,6 @@
       gap: 4px;
     }
 
-    .compare-table {
-      display: block;
-      overflow-x: auto;
-    }
-
     .libra-bonus {
       margin-top: 16px;
     }
@@ -11490,6 +13010,30 @@
       border-radius: 14px;
     }
 
+    .final-verdict-stage {
+      min-height: calc(100svh - 24px);
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .final-verdict-header img {
+      height: 34px;
+    }
+
+    .final-verdict-content h1 {
+      font-size: clamp(38px, 15vw, 58px);
+      line-height: 0.98;
+    }
+
+    .final-verdict-content strong {
+      padding: 9px 13px;
+      font-size: 12px;
+    }
+
+    .final-verdict-progress span {
+      width: 32px;
+    }
+
     .analysis-footer,
     .simulation-footer {
       display: grid;
@@ -11619,4 +13163,93 @@
     50% { opacity: 1; transform: translateY(-12px) scale(1.25); }
   }
 
+  @media (max-width: 768px) {
+    .quick-loop {
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 10px;
+      letter-spacing: 0.06em;
+    }
+
+    .quick-loop i {
+      width: 20px;
+    }
+
+    .mode-card-content em {
+      font-size: 15px;
+    }
+
+    .mode-preview {
+      margin-top: 12px;
+      gap: 6px;
+    }
+
+    .mode-preview span {
+      padding: 6px 7px;
+      font-size: 9px !important;
+    }
+
+    .pick-impact-strip {
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      padding: 10px 11px;
+      border-radius: 13px;
+    }
+
+    .pick-impact-strip p {
+      grid-column: 1 / -1;
+      font-size: 12px;
+    }
+
+    .bench-screen {
+      padding: 24px 16px;
+    }
+
+    .bench-impact-grid {
+      gap: 8px;
+    }
+
+    .bench-impact-grid article {
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .bench-impact-grid strong {
+      font-size: 18px;
+    }
+
+    .bench-role-grid {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .bench-phoebe {
+      border-radius: 14px;
+      padding: 10px;
+    }
+
+    .bench-phoebe img {
+      width: 44px;
+      height: 44px;
+    }
+
+    .bench-actions {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pick-chip,
+    .pitch button.just-assigned,
+    .mobile-squad-slots button.just-assigned,
+    .mobile-slot-list button.just-assigned,
+    .final-verdict-stage,
+    .final-verdict-content,
+    .final-verdict-progress span {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
 </style>
