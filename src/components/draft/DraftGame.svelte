@@ -5297,7 +5297,10 @@
               <strong>{player.name}</strong>
               <small>{getPositions(player).join(" · ")} · {displayTeamContext(player)}</small>
             </div>
-            <b class="bench-pool-iog">IoG {formatIoG(player.adjustedIog)}</b>
+            <b class="bench-pool-iog">
+              <span>IoG</span>
+              <strong>{formatIoG(player.adjustedIog)}</strong>
+            </b>
           </button>
         {/each}
         {#if filteredBenchPool.length === 0}
@@ -7663,6 +7666,9 @@
 
   .bench-pool-iog {
     flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
     border: 1px solid rgba(201, 166, 70, 0.28);
     border-radius: 999px;
     color: #efd574;
@@ -7670,6 +7676,11 @@
     font-size: 11px;
     font-weight: 700;
     white-space: nowrap;
+  }
+
+  .bench-pool-iog strong {
+    color: inherit;
+    font: inherit;
   }
 
   .bench-pool-empty {
@@ -7788,6 +7799,46 @@
     .bench-pool-grid {
       grid-template-columns: 1fr;
       max-height: 280px;
+    }
+
+    .bench-pool-card {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 72px;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .bench-pool-info {
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .bench-pool-iog {
+      width: 72px;
+      min-width: 72px;
+      justify-self: end;
+      display: grid;
+      justify-items: center;
+      align-content: center;
+      gap: 2px;
+      padding: 5px 6px;
+      text-align: center;
+    }
+
+    .bench-pool-iog span {
+      color: #8f95a5;
+      font-size: 8px;
+      font-weight: 950;
+      letter-spacing: 0.12em;
+      line-height: 1;
+      text-transform: uppercase;
+    }
+
+    .bench-pool-iog strong {
+      color: #efd574;
+      font-size: 15px;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
     }
 
     .bench-counter {
@@ -12046,6 +12097,7 @@
       grid-template-columns: 46px minmax(0, 1fr) 72px;
       align-items: center;
       gap: 9px;
+      width: 100%;
     }
 
     .mobile-player-initials {
@@ -12063,6 +12115,7 @@
 
     .mobile-player-head > div:nth-child(2) {
       min-width: 0;
+      overflow: hidden;
     }
 
     .mobile-player-head strong {
@@ -12085,8 +12138,11 @@
 
     .mobile-card-metrics {
       width: 72px;
+      min-width: 72px;
+      justify-self: end;
       display: grid;
       justify-items: center;
+      align-content: center;
       text-align: center;
       gap: 2px;
     }
@@ -12108,11 +12164,20 @@
     }
 
     .mobile-card-metrics span {
+      max-width: 100%;
       color: #d7dbe5;
       font-size: 9px;
       font-weight: 850;
       line-height: 1.05;
+      overflow: hidden;
+      text-overflow: ellipsis;
       white-space: nowrap;
+    }
+
+    .player-main,
+    .player-main > div {
+      width: 100%;
+      min-width: 0;
     }
 
     .player-main small,
